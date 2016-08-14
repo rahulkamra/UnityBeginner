@@ -1,0 +1,12 @@
+{
+	"NAME" : "EnemyA",
+	"HP":200,
+	"MAX_ATTACK" : 300
+	"TARGET" : 
+				{
+					"NAME" : "PlayerA",
+					"HP":200,
+					"MAX_ATTACK" : 300
+				}
+	
+}

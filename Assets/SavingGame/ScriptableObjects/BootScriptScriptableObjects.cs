@@ -7,7 +7,7 @@ public class BootScriptScriptableObjects : MonoBehaviour {
 	// Use this for initialization
 	void Start ()
     {
-        string assetPath = string.Concat("file://", Application.dataPath , "/SavingGame/ScriptableObjects/Instances/EnemyA.asset");
+        string assetPath = string.Concat("file://", Application.dataPath , "/Bundles/scriptableobjects.unity3d");
         Object asset = Resources.Load(assetPath);
         IEnumerator assetBundle = loadAssetBundle(assetPath);
         StartCoroutine(assetBundle);
@@ -31,10 +31,11 @@ public class BootScriptScriptableObjects : MonoBehaviour {
         AssetBundle bundle = www.assetBundle;
 
         Debug.Log(bundle);
-        AssetBundleRequest request = bundle.LoadAssetAsync("temp", typeof(EnemyConf));
+        AssetBundleRequest request = bundle.LoadAssetAsync("EnemyA", typeof(EnemyConf));
         yield return request;
 
-        Debug.Log(request.asset);
+        EnemyConf enemy = request.asset as EnemyConf;
+        //Debug.Log(enemy.);
         //return null;
     }
 }

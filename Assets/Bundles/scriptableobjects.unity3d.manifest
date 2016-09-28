@@ -1,0 +1,24 @@
+ManifestFileVersion: 0
+CRC: 1369023766
+Hashes:
+  AssetFileHash:
+    serializedVersion: 2
+    Hash: 1e512ff82364bc5f3d2da21008e3f244
+  TypeTreeHash:
+    serializedVersion: 2
+    Hash: 2b7d03fdd3cd1184678a089df545f0c4
+HashAppended: 0
+ClassTypes:
+- Class: 114
+  Script: {fileID: 11500000, guid: 1b30dbc45b0826b4286ba8450e8f7558, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 8bb9b80a37315b549aef210e388c829d, type: 3}
+- Class: 114
+  Script: {fileID: 11500000, guid: 133d5f2ad3fe590469926668f06bb876, type: 3}
+- Class: 115
+  Script: {instanceID: 0}
+Assets:
+- Assets/SavingGame/ScriptableObjects/Instances/PlayerA.asset
+- Assets/SavingGame/ScriptableObjects/Instances/ConfExtendingConf.asset
+- Assets/SavingGame/ScriptableObjects/Instances/EnemyA.asset
+Dependencies: []

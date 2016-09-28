@@ -1,0 +1,7 @@
+ManifestFileVersion: 0
+CRC: 4153502802
+AssetBundleManifest:
+  AssetBundleInfos:
+    Info_0:
+      Name: hello.unity3d
+      Dependencies: {}

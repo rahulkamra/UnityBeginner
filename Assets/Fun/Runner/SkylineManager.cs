@@ -22,14 +22,16 @@ public class SkylineManager : MonoBehaviour {
     void Start ()
     {
         Objects = new Queue<Transform>(NumObjects);
-        nextPosition = StartPosition;
+        GameManager.EventDispatcher.AddEventListner(RunnerEvents.EVENT_GAME_START, OnGameStart);
+        GameManager.EventDispatcher.AddEventListner(RunnerEvents.EVENT_GAME_END, OnGameEnd);
+        this.enabled = false;
+
         for (int idx = 0; idx < NumObjects; idx++)
         {
-            Transform transform = Instantiate(Prefab);
-            Recycle(transform);
+            Transform transform = (Transform)Instantiate(Prefab,new Vector3(0,0,-100),Quaternion.identity);
+            Objects.Enqueue(transform);
         }
-	
-	}
+    }
 	
 	// Update is called once per frame
 	void Update ()
@@ -64,4 +66,20 @@ public class SkylineManager : MonoBehaviour {
         Objects.Enqueue(transform);
     }
 
+    void OnGameStart(Event Event)
+    {
+        this.enabled = true;
+        nextPosition = StartPosition;
+        int len = Objects.Count;
+        for (int idx = 0; idx < len; idx++)
+        {
+            Transform transform = Objects.Dequeue();
+            Recycle(transform);
+        }
+    }
+
+    void OnGameEnd(Event Event)
+    {
+        this.enabled = false;
+    }
 }

@@ -10,7 +10,10 @@ public class PlatformManager : SkylineManager {
     public Vector3 MinGap;
     public Vector3 MaxGap;
 
- 
+    public Material[] Materials;
+    public PhysicMaterial[] PhysicMaterials;
+
+
 
     override protected void Recycle(Transform transform)
     {
@@ -48,5 +51,10 @@ public class PlatformManager : SkylineManager {
         {
             nextPosition.y = MinY + MaxGap.y;
         }
+
+        //we need to add material here
+        int randomIndex = Random.Range(0, Materials.Length);
+        transform.GetComponent<Renderer>().material = Materials[randomIndex];
+        transform.GetComponent<BoxCollider>().material = PhysicMaterials[randomIndex];
     }
 }

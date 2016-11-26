@@ -13,6 +13,7 @@ public class PlatformManager : SkylineManager {
     public Material[] Materials;
     public PhysicMaterial[] PhysicMaterials;
 
+    public Booster Booster;
 
 
     override protected void Recycle(Transform transform)
@@ -28,6 +29,8 @@ public class PlatformManager : SkylineManager {
 
         position.x += scale.x * 0.5f;
         position.y += scale.y * 0.5f;
+
+        Booster.SpawnIfAvailable(position);
 
         transform.localScale = scale;
         transform.localPosition = position;

@@ -8,11 +8,14 @@ public class Runner : MonoBehaviour
     public static float DistanceTraveled;
     public float Acceleration;
     public Vector3 JumpVelocity;
+    public Vector3 BoostVelocity;
     public float GameOverY;
 
     private bool IsTouchingPlatform;
     private Rigidbody _rigidBody;
     private Vector3 _startPosition;
+    private static int _boosts = 0;
+
 
     void Start ()
     {
@@ -26,13 +29,24 @@ public class Runner : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
     {
-	    if (IsTouchingPlatform && Input.GetButtonDown("Jump"))
+	    if (Input.GetButtonDown("Jump"))
 	    {
-            this._rigidBody.AddForce(JumpVelocity,ForceMode.VelocityChange);
-	        this.IsTouchingPlatform = false;
-	    }
+            if (IsTouchingPlatform)
+            {
+                this._rigidBody.AddForce(JumpVelocity, ForceMode.VelocityChange);
+                this.IsTouchingPlatform = false;
+            }
+            else if(_boosts > 0)
+            {
+                this._rigidBody.AddForce(BoostVelocity, ForceMode.VelocityChange);
+                _boosts--;
+                GameManager.SetBoosts(_boosts);
+            }
+        }
+	    
 	    DistanceTraveled = this.transform.localPosition.x;
-	    if (this.transform.localPosition.y < GameOverY)
+        GameManager.SetDistance(DistanceTraveled);
+        if (this.transform.localPosition.y < GameOverY)
 	    {
             GameManager.EventDispatcher.dispatchEvent(RunnerEvents.EVENT_GAME_END,null);
 	    }
@@ -64,6 +78,9 @@ public class Runner : MonoBehaviour
         this.GetComponent<Renderer>().enabled = true;
         this.GetComponent<Rigidbody>().isKinematic = false;
         this.enabled = true;
+
+        GameManager.SetDistance(DistanceTraveled);
+        GameManager.SetBoosts(_boosts);
     }
 
     void OnGameEnd(Event Event)
@@ -72,4 +89,11 @@ public class Runner : MonoBehaviour
         this.GetComponent<Rigidbody>().isKinematic = true;
         this.enabled = false;
     }
+
+    public static void AddBoost()
+    {
+        _boosts++;
+        GameManager.SetBoosts(_boosts);
+    }
+
 }

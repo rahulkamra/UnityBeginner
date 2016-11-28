@@ -38,7 +38,7 @@ public class ColorPointPropertyDrawer : PropertyDrawer
 
     public override float GetPropertyHeight(SerializedProperty property, GUIContent label)
     {
-        return Screen.width < 333 ? 2*_lineHeight + _lineGap : _lineHeight;
+        return label != GUIContent.none && Screen.width < 333 ? 2*_lineHeight + _lineGap : _lineHeight;
     }
 
 }

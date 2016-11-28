@@ -8,5 +8,6 @@ public class ListTester : MonoBehaviour
     public Vector3[] Vectors;
     public ColorPointModel[] ColorModels;
     public Transform[] Transforms;
-    
+    public int NotAList;
+
 }

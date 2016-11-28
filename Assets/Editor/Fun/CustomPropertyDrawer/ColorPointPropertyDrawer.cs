@@ -11,6 +11,7 @@ public class ColorPointPropertyDrawer : PropertyDrawer
 
     public override void OnGUI(Rect position, SerializedProperty property, GUIContent label)
     {
+        int oldIndentLevel = EditorGUI.indentLevel;
         EditorGUI.BeginProperty(position, label, property);
         Rect currentPosition = EditorGUI.PrefixLabel(position, label);
 
@@ -18,12 +19,12 @@ public class ColorPointPropertyDrawer : PropertyDrawer
         {
             //means it is two lines
             position.height = _lineHeight;
-            EditorGUI.indentLevel += 1;
+            EditorGUI.indentLevel = oldIndentLevel + 1;
             currentPosition = EditorGUI.IndentedRect(position);
             currentPosition.y += _lineHeight + _lineGap;
         }
         currentPosition.width *= 0.75f;
-        EditorGUI.indentLevel = 0;
+        EditorGUI.indentLevel = oldIndentLevel;
         EditorGUI.PropertyField(currentPosition, property.FindPropertyRelative("Position"),GUIContent.none);
 
         currentPosition.x += currentPosition.width;

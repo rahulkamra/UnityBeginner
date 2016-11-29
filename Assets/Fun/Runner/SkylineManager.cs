@@ -66,7 +66,7 @@ public class SkylineManager : MonoBehaviour {
         Objects.Enqueue(transform);
     }
 
-    void OnGameStart(Event Event)
+    void OnGameStart(EventPayLoad Event)
     {
         this.enabled = true;
         nextPosition = StartPosition;
@@ -78,7 +78,7 @@ public class SkylineManager : MonoBehaviour {
         }
     }
 
-    void OnGameEnd(Event Event)
+    void OnGameEnd(EventPayLoad Event)
     {
         this.enabled = false;
     }

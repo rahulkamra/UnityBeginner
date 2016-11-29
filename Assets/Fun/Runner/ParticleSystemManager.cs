@@ -15,7 +15,7 @@ public class ParticleSystemManager : MonoBehaviour {
     }
 
 
-    public void OnGameStart(Event Event)
+    public void OnGameStart(EventPayLoad Event)
     {
         for(int idx = 0 ; idx < ParticleSystems.Length ; idx++)
         {
@@ -24,7 +24,7 @@ public class ParticleSystemManager : MonoBehaviour {
         }
     }
 
-    public void OnGameEnd(Event Event)
+    public void OnGameEnd(EventPayLoad Event)
     { 
         for(int idx = 0; idx<ParticleSystems.Length ; idx++)
         {

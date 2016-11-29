@@ -31,7 +31,7 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    public void OnGameStart(Event Event)
+    public void OnGameStart(EventPayLoad Event)
     {
         TxtGameOver.enabled = false;
         TxtInstruction.enabled = false;
@@ -50,7 +50,7 @@ public class GameManager : MonoBehaviour
         Instance.TxtDistance.text = distance.ToString("f0");
     }
 
-    public void OnGameEnd(Event Event)
+    public void OnGameEnd(EventPayLoad Event)
     {
         TxtGameOver.enabled = true;
         TxtInstruction.enabled = true;

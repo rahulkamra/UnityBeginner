@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 
 
-public delegate void EventDeletegate(Event data);
+public delegate void EventDeletegate(EventPayLoad data);
 public class EventDispatcher
 {
 
@@ -35,7 +35,7 @@ public class EventDispatcher
         }
     }
 
-    public void dispatchEvent(string eventName,Event data)
+    public void dispatchEvent(string eventName, EventPayLoad data)
     {
         List<EventDeletegate> deletegates;
         if (_eventListers.TryGetValue(eventName, out deletegates))
@@ -48,7 +48,7 @@ public class EventDispatcher
     }
 }
 
-public class Event
+public class EventPayLoad
 {
     public Object data;
 }

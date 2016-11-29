@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 using UnityEditor;
-using System.Collections;
+
 
 
 [CustomEditor(typeof(Star))]
@@ -28,6 +28,14 @@ public class StarInspector : Editor
         EditorGUILayout.PropertyField(Frequency);
         
         
-        serializedObject.ApplyModifiedProperties();
+        if(serializedObject.ApplyModifiedProperties() || Event.current.type == EventType.ValidateCommand)
+        {
+            
+            foreach(Star star in serializedObject.targetObjects)
+            {
+                star.UpdateMesh();
+            }
+        }
+
     }
 }

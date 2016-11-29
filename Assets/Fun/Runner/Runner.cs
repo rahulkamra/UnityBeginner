@@ -71,7 +71,7 @@ public class Runner : MonoBehaviour
     }
 
 
-    void OnGameStart(Event Event)
+    void OnGameStart(EventPayLoad Event)
     {
         DistanceTraveled = 0f;
         this.transform.localPosition = _startPosition;
@@ -83,7 +83,7 @@ public class Runner : MonoBehaviour
         GameManager.SetBoosts(_boosts);
     }
 
-    void OnGameEnd(Event Event)
+    void OnGameEnd(EventPayLoad Event)
     {
         this.GetComponent<Renderer>().enabled = false;
         this.GetComponent<Rigidbody>().isKinematic = true;

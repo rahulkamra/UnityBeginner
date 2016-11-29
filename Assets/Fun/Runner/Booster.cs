@@ -43,12 +43,12 @@ public class Booster : MonoBehaviour {
         gameObject.SetActive(false);
         isInit = true;
     }
-    public void OnGameStart(Event Event)
+    public void OnGameStart(EventPayLoad Event)
     {
         this.gameObject.SetActive(false);
     }
 
-    public void OnGameEnd(Event Event)
+    public void OnGameEnd(EventPayLoad Event)
     {
         this.gameObject.SetActive(false);
 

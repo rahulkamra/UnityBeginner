@@ -4,7 +4,7 @@ using System.Collections;
 [RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
 public class Star : MonoBehaviour {
 
-    
+    [Range(1,20)]
     public int Frequency;
     public ColorPointModel Center;
     public ColorPointModel[] Points;

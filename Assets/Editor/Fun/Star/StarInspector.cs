@@ -28,9 +28,8 @@ public class StarInspector : Editor
         EditorGUILayout.PropertyField(Frequency);
         
         
-        if(serializedObject.ApplyModifiedProperties() || Event.current.type == EventType.ValidateCommand)
+        if(serializedObject.ApplyModifiedProperties() || (Event.current.type == EventType.ValidateCommand || Event.current.commandName == "UndoRedoPerformed"))
         {
-            
             foreach(Star star in serializedObject.targetObjects)
             {
                 star.UpdateMesh();

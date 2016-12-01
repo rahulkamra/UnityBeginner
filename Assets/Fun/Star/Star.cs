@@ -74,7 +74,11 @@ public class Star : MonoBehaviour {
         this.Mesh.colors = colors;
     }
 
+    void OnEnable()
+    {
+        UpdateMesh();
 
+    }
     private void Reset()
     {
         UpdateMesh();

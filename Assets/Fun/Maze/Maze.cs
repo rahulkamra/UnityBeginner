@@ -15,10 +15,22 @@ public class Maze : MonoBehaviour {
 
     public float GenerationDelay;
 
+    public PickType CurrentPickType;
 
     private MazeCell[,] Cells;
 
+    private delegate int PickTypeFunction(List<MazeCell> activeCells);
+    public enum PickType
+    {
+        Last, First, Random, Middle
+    }
 
+    private PickTypeFunction[] PickTypeFunctions =
+    {
+        LastItem,FirstItem,RandomItem,MiddleItem
+    };
+   
+   
     void Start () {
        
     }
@@ -52,7 +64,8 @@ public class Maze : MonoBehaviour {
 
     private void DoNextGenerationStep(List<MazeCell> activeCells)
     {
-        int currentIndex = activeCells.Count - 1;
+        PickTypeFunction pickFunction = PickTypeFunctions[(int) CurrentPickType];
+        int currentIndex = pickFunction(activeCells);
         MazeCell currentMazeCell = activeCells[currentIndex];
         if (currentMazeCell.IsFulltInitialized)
         {
@@ -137,5 +150,25 @@ public class Maze : MonoBehaviour {
         return Cells[coordinates.x, coordinates.z];
     }
 
+    private static int LastItem(List<MazeCell> activeCells)
+    {
+        return activeCells.Count - 1;
+    }
+
+    private static int FirstItem(List<MazeCell> activeCells)
+    {
+        return 0;
+    }
+
+    private static int RandomItem(List<MazeCell> activeCells)
+    {
+        return Random.Range(0, activeCells.Count);
+    }
+
+    private static int MiddleItem(List<MazeCell> activeCells)
+    {
+        return activeCells.Count/2;
+    }
 }
+
 

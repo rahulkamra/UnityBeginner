@@ -8,7 +8,11 @@ public class Maze : MonoBehaviour {
 	// Use this for initialization
 
     public IntVector2 Size;
-    public MazeCell CellPrepab;
+
+    public MazeCell MazeCell;
+    public MazePassage PassagePrefab;
+    public MazeWall WallPrefab;
+
     public float GenerationDelay;
 
 
@@ -42,7 +46,7 @@ public class Maze : MonoBehaviour {
 
     private void DoFirstGenerationStep(List<MazeCell> activeCells)
     {
-        IntVector2 coordinates = RandomCoordinates;
+        IntVector2 coordinates = new IntVector2(0,0);//RandomCoordinates);
         activeCells.Add(CreateCell(coordinates));
     }
 
@@ -50,17 +54,34 @@ public class Maze : MonoBehaviour {
     {
         int currentIndex = activeCells.Count - 1;
         MazeCell currentMazeCell = activeCells[currentIndex];
-        MazeDirection direction = MazeDirections.GetRandomDirection;
-        IntVector2 nextCoordinates = currentMazeCell.Coordinate + direction.ToIntVector2();
-      //  Debug.Log("trying " + nextCoordinates.ToString());
-        if (ContainsCoordinates(nextCoordinates) && GetMazeCell(nextCoordinates) == null)
+        if (currentMazeCell.IsFulltInitialized)
         {
-            activeCells.Add(CreateCell(nextCoordinates));
+            activeCells.RemoveAt(currentIndex);
+            return;
+        }
+        MazeDirection direction = currentMazeCell.RandomUnitializedDirection();
+        IntVector2 nextCoordinates = currentMazeCell.Coordinate + direction.ToIntVector2();
+      
+        if (ContainsCoordinates(nextCoordinates))
+        {
+            MazeCell nextCell = GetMazeCell(nextCoordinates);
+            if (nextCell == null)
+            {
+                nextCell = CreateCell(nextCoordinates);
+                CreatePassage(currentMazeCell,nextCell,direction);
+                activeCells.Add(nextCell);
+            }
+            else
+            {
+                CreateWall(currentMazeCell, nextCell, direction);
+                
+            }
+            
         }
         else
         {
-          //  Debug.Log("Removing Cell " + activeCells[currentIndex].ToString());
-            activeCells.RemoveAt(currentIndex);
+          //we need to add a wall because we are outisde the maze;
+            CreateWall(currentMazeCell, null,direction);
         }
 
         
@@ -69,13 +90,34 @@ public class Maze : MonoBehaviour {
     private MazeCell CreateCell(IntVector2 coordinates)
     {
        // Debug.Log("Creating Cell " + coordinates.ToString());
-        MazeCell newCell = Instantiate(CellPrepab);
+        MazeCell newCell = Instantiate(MazeCell);
         newCell.Coordinate = coordinates;
         Cells[coordinates.x, coordinates.z] = newCell;
         newCell.name = "Maze Cell " + coordinates.x + ", " + coordinates.z;
         newCell.transform.parent = transform;
         newCell.transform.localPosition = new Vector3(coordinates.x - Size.x * 0.5f + 0.5f, 0f, coordinates.z - Size.z * 0.5f + 0.5f);
         return newCell;
+    }
+
+    private void CreateWall(MazeCell from , MazeCell to , MazeDirection direction)
+    {
+        MazeWall wall = Instantiate(WallPrefab);
+        wall.Initialize(from,to,direction);
+
+        if (to != null)
+        {
+            wall = Instantiate(WallPrefab);
+            wall.Initialize(to, from, direction.GetOpposite());
+        }
+    }
+
+    private void CreatePassage(MazeCell from, MazeCell to, MazeDirection direction)
+    {
+        MazePassage passage = Instantiate(PassagePrefab);
+        passage.Initialize(from,to,direction);
+
+        passage = Instantiate(PassagePrefab);
+        passage.Initialize(to,from,direction.GetOpposite());
     }
 
     public IntVector2 RandomCoordinates

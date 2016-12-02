@@ -2,6 +2,9 @@
 
 public enum MazeDirection
 {
-    North,East, West, South
+    North,
+    East,
+    South,
+    West
 }
 

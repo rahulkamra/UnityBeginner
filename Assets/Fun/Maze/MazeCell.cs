@@ -5,6 +5,7 @@ public class MazeCell : MonoBehaviour {
 
    
 	// Use this for initialization
+    public IntVector2 Coordinate;
 	void Start () {
 	
 	}

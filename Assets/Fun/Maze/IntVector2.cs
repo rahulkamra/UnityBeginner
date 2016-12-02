@@ -1,7 +1,9 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using System.Collections;
 using System.Runtime.CompilerServices;
 
+[Serializable]
 public struct IntVector2
 {
     public int x, z;
@@ -17,6 +19,8 @@ public struct IntVector2
         return new IntVector2(lhs.x + rhs.x ,lhs.z + rhs.z);
     }
 
-
-
+    public override string ToString()
+    {
+        return x + ", " + z;
+    }
 }

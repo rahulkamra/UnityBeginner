@@ -11,7 +11,7 @@ public class Maze : MonoBehaviour {
 
     public MazeCell MazeCell;
     public MazePassage PassagePrefab;
-    public MazeWall WallPrefab;
+    public MazeWall[] WallPrefabs;
 
     public float GenerationDelay;
 
@@ -114,12 +114,12 @@ public class Maze : MonoBehaviour {
 
     private void CreateWall(MazeCell from , MazeCell to , MazeDirection direction)
     {
-        MazeWall wall = Instantiate(WallPrefab);
+        MazeWall wall = Instantiate(WallPrefabs[Random.Range(0,WallPrefabs.Length)]);
         wall.Initialize(from,to,direction);
 
         if (to != null)
         {
-            wall = Instantiate(WallPrefab);
+            wall = Instantiate(WallPrefabs[Random.Range(0, WallPrefabs.Length)]);
             wall.Initialize(to, from, direction.GetOpposite());
         }
     }

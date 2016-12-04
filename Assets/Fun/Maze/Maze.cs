@@ -10,7 +10,14 @@ public class Maze : MonoBehaviour {
     public IntVector2 Size;
 
     public MazeCell MazeCell;
+
     public MazePassage PassagePrefab;
+
+    public MazeDoor DoorPrefab;
+
+    [Range(0f,1f)]
+    public float DoorProbability;
+
     public MazeWall[] WallPrefabs;
 
     public float GenerationDelay;
@@ -126,7 +133,8 @@ public class Maze : MonoBehaviour {
 
     private void CreatePassage(MazeCell from, MazeCell to, MazeDirection direction)
     {
-        MazePassage passage = Instantiate(PassagePrefab);
+        MazePassage Prefab = Random.value <= DoorProbability ? DoorPrefab : PassagePrefab;
+        MazePassage passage = Instantiate(Prefab);
         passage.Initialize(from,to,direction);
 
         passage = Instantiate(PassagePrefab);

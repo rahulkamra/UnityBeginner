@@ -24,9 +24,11 @@ public class Maze : MonoBehaviour {
 
     public PickType CurrentPickType;
 
-    private MazeCell[,] Cells;
+    public MazeRoomSettings[] RoomSettings;
 
+    private MazeCell[,] Cells;
     private delegate int PickTypeFunction(List<MazeCell> activeCells);
+    private List<MazeRoom> MazeRooms = new List<MazeRoom>();
     public enum PickType
     {
         Last, First, Random, Middle
@@ -66,7 +68,10 @@ public class Maze : MonoBehaviour {
     private void DoFirstGenerationStep(List<MazeCell> activeCells)
     {
         IntVector2 coordinates = new IntVector2(0,0);//RandomCoordinates);
-        activeCells.Add(CreateCell(coordinates));
+        MazeCell cell =  CreateCell(coordinates);
+        MazeRoom room = createMazeRoom();
+        cell.Initialize(room);
+        activeCells.Add(cell);
     }
 
     private void DoNextGenerationStep(List<MazeCell> activeCells)
@@ -138,8 +143,30 @@ public class Maze : MonoBehaviour {
         passage.Initialize(from,to,direction);
 
         passage = Instantiate(PassagePrefab);
+        if(Prefab is MazeDoor)
+        {
+            MazeRoom room =  createMazeRoom();
+            to.Initialize(room);
+        }
+        else
+        {
+            to.Initialize(from.Room);
+        }
         passage.Initialize(to,from,direction.GetOpposite());
     }
+
+    private MazeRoom createMazeRoom()
+    {
+        int index = this.MazeRooms.Count % this.RoomSettings.Length;
+        MazeRoomSettings roomSettings = this.RoomSettings[index];
+
+        MazeRoom mazeRoom = ScriptableObject.CreateInstance<MazeRoom>();
+        mazeRoom.MazeRoomSettings = roomSettings;
+        this.MazeRooms.Add(mazeRoom);
+        return mazeRoom;
+    }
+
+
 
     public IntVector2 RandomCoordinates
     {

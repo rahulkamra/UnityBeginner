@@ -20,6 +20,13 @@ public class MazeDoor : MazePassage
     {
         base.Initialize(cell, otherCell, direction);
         //now we have to check if the edge exist bettween cell - othercell or other cell -- cell
-
+        for(int idx = 0; idx < transform.childCount; idx++)
+        {
+            Transform child = transform.GetChild(idx);
+            if(child.name != "Hinge")
+            {
+                child.GetComponent<Renderer>().material = cell.Room.MazeRoomSettings.WallMaterial;
+            }
+        }
     }
 }

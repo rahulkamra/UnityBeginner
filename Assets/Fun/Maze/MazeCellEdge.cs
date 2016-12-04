@@ -10,7 +10,7 @@ public abstract class MazeCellEdge : MonoBehaviour
     [HideInInspector]
     public MazeDirection Direction;
 
-    public void Initialize(MazeCell cell, MazeCell otherCell, MazeDirection direction)
+    public virtual void Initialize(MazeCell cell, MazeCell otherCell, MazeDirection direction)
     {
         this.Cell = cell;
         this.OtherCell = otherCell;

@@ -14,5 +14,14 @@ public class MazeRoom : ScriptableObject
         cells.Add(cell);   
     }
 
+    public void Assimilate(MazeRoom room)
+    {
+        for (int idx = 0; idx < room.cells.Count; idx++)
+        {
+            this.Add(room.cells[idx]); 
+        }
+
+    }
+
 }
 

@@ -95,6 +95,10 @@ public class Maze : MonoBehaviour {
                 nextCell = CreateCell(nextCoordinates);
                 CreatePassage(currentMazeCell,nextCell,direction);
                 activeCells.Add(nextCell);
+            }else if(nextCell.Room.SettingsIndex == currentMazeCell.Room.SettingsIndex)
+            {
+                CreatePassageInSameRoom(currentMazeCell, nextCell, direction);
+                activeCells.Add(nextCell);
             }
             else
             {
@@ -111,6 +115,8 @@ public class Maze : MonoBehaviour {
 
         
     }
+
+    
 
     private MazeCell CreateCell(IntVector2 coordinates)
     {
@@ -136,6 +142,21 @@ public class Maze : MonoBehaviour {
         }
     }
 
+    private void CreatePassageInSameRoom(MazeCell from, MazeCell to, MazeDirection direction)
+    {
+        MazePassage passage = Instantiate(PassagePrefab);
+        passage.Initialize(from, to, direction);
+        
+        passage = Instantiate(PassagePrefab);
+        passage.Initialize(to, from, direction.GetOpposite());
+        if(from.Room != to.Room)
+        {
+            MazeRoom roomToDestroy = to.Room;
+            from.Room.Assimilate(roomToDestroy);
+            this.MazeRooms.Remove(roomToDestroy);
+            Destroy(roomToDestroy);
+        }
+    }
     private void CreatePassage(MazeCell from, MazeCell to, MazeDirection direction)
     {
         MazePassage Prefab = Random.value <= DoorProbability ? DoorPrefab : PassagePrefab;
@@ -162,6 +183,7 @@ public class Maze : MonoBehaviour {
 
         MazeRoom mazeRoom = ScriptableObject.CreateInstance<MazeRoom>();
         mazeRoom.MazeRoomSettings = roomSettings;
+        mazeRoom.SettingsIndex = index;
         this.MazeRooms.Add(mazeRoom);
         return mazeRoom;
     }

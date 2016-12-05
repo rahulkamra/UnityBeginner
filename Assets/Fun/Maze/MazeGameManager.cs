@@ -5,12 +5,16 @@ public class MazeGameManager : MonoBehaviour {
 
 	// Use this for initialization
     public Maze Maze;
+    public Player PlayerPrefab;
+
 
     private Maze mazeInstance;
+    private Player playerInstance;
 
-	void Start ()
+
+    void Start ()
 	{
-	    BeginGame();
+	    StartCoroutine(BeginGame());
 	}
 	
 	// Update is called once per frame
@@ -25,14 +29,26 @@ public class MazeGameManager : MonoBehaviour {
 
     void RestartGame()
     {
+        StopAllCoroutines();
         Destroy(mazeInstance.gameObject);
-        BeginGame();
+        StartCoroutine(BeginGame());
     }
 
-    void BeginGame()
+    IEnumerator BeginGame()
     {
         mazeInstance =  Instantiate(Maze);
-        StartCoroutine(mazeInstance.Generate());
+        yield return StartCoroutine(mazeInstance.Generate());
+        createPlayerInstance();
+    }
+
+    void createPlayerInstance()
+    {
+        this.playerInstance = Instantiate(PlayerPrefab);
+        this.playerInstance.transform.parent = mazeInstance.transform;
+        IntVector2 coordinates = mazeInstance.RandomCoordinates;
+        MazeCell cell =  mazeInstance.GetMazeCell(coordinates);
+        this.playerInstance.SetCell(cell);
+        
     }
 
 

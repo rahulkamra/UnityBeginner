@@ -57,5 +57,22 @@ public static  class MazeDirections
         return rotations[(int)direction];
     }
 
+    public static MazeDirection GetClockWiseDirection(this MazeDirection direction)
+    {
+        int intDirection = (int)direction;
+        int clockWiseDirection = (intDirection + 1) % Count;
+
+        return (MazeDirection)clockWiseDirection;
+    }
+
+    public static MazeDirection GetCounterClockWiseDirection(this MazeDirection direction)
+    {
+        int intDirection = (int)direction;
+        int counterClockWiseDirection = (intDirection - 1 + Count) % Count;
+        return (MazeDirection)counterClockWiseDirection;
+    }
+
+
+
 }
 

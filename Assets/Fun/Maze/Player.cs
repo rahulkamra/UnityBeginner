@@ -1,11 +1,15 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class Player : MonoBehaviour {
+public class Player : MonoBehaviour
+{
 
     private MazeCell currentCell;
 
-	// Use this for initialization
+    // Use this for initialization
+
+    private MazeDirection currentDirection;
+
 	void Start () {
 	
 	}
@@ -13,31 +17,49 @@ public class Player : MonoBehaviour {
 	// Update is called once per frame
 	void Update ()
     {
-	    if(Input.GetKeyDown(KeyCode.UpArrow))
+	    if(Input.GetKeyDown(KeyCode.UpArrow) || Input.GetKeyDown(KeyCode.W))
         {
-            move(MazeDirection.North);
+            move(currentDirection);
         }
 
-        if (Input.GetKeyDown(KeyCode.DownArrow))
+        if (Input.GetKeyDown(KeyCode.DownArrow) || Input.GetKeyDown(KeyCode.S))
         {
-            move(MazeDirection.South);
+            move(currentDirection.GetOpposite());
         }
 
-        if (Input.GetKeyDown(KeyCode.LeftArrow))
+        if (Input.GetKeyDown(KeyCode.LeftArrow)  || Input.GetKeyDown(KeyCode.A))
         {
-            move(MazeDirection.West);
+            move(currentDirection.GetCounterClockWiseDirection());
         }
 
-        if (Input.GetKeyDown(KeyCode.RightArrow))
+        if (Input.GetKeyDown(KeyCode.RightArrow) || Input.GetKeyDown(KeyCode.D))
         {
-            move(MazeDirection.East);
+            move(currentDirection.GetClockWiseDirection());
         }
+
+        if (Input.GetKeyDown(KeyCode.Q))
+        {
+            Rotate(currentDirection.GetCounterClockWiseDirection());
+        }
+
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            Rotate(currentDirection.GetClockWiseDirection());
+        }
+
     }
 
     public void SetCell(MazeCell mazeCell)
     {
         this.currentCell = mazeCell;
         this.transform.localPosition = mazeCell.transform.localPosition;
+    }
+
+    private void Rotate(MazeDirection direction)
+    {
+        //we need to rotate to this direction
+        this.transform.localRotation =  direction.ToRotation();
+        this.currentDirection = direction;
     }
 
     private void move(MazeDirection direction)

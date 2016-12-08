@@ -25,12 +25,13 @@ public class BezierCurve : MonoBehaviour
 
     public Vector3 GetVelocity(float t)
     {
-        return transform.TransformPoint(BezierUtils.GetFirstDerivative(points[0], points[1], points[2], t)) - transform.position;
+        return transform.TransformPoint(BezierUtils.GetFirstDerivative(points[0], points[1], points[2], points[3], t)) - transform.position;
     }
 
-    public Vector3 Direction(float t)
+    public Vector3 GetDirection(float t)
     {
         return GetVelocity(t).normalized;
     }
+
 
 }

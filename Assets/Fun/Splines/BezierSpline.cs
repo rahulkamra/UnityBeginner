@@ -22,16 +22,16 @@ public class BezierSpline : MonoBehaviour
     public Vector3 GetPoint(float t)
     {
         //we need to get the index first
-        t = GetCurveDeltaT(t);
-        int index = getCurveStartingIndex(t);
-        return transform.TransformPoint(BezierUtils.GetPoint(points[index], points[index + 1], points[index + 2], points[index + 3], t));
+        float scaledT = GetCurveDeltaT(t);
+        int index = GetCurveStartingIndex(t);
+        return transform.TransformPoint(BezierUtils.GetPoint(points[index], points[index + 1], points[index + 2], points[index + 3], scaledT));
     }
 
     public Vector3 GetVelocity(float t)
     {
-        t = GetCurveDeltaT(t);
-        int index = getCurveStartingIndex(t);
-        return transform.TransformPoint(BezierUtils.GetFirstDerivative(points[index], points[index+ 1], points[index + 2], points[index + 3], t)) - transform.position;
+        float scaledT = GetCurveDeltaT(t);
+        int index = GetCurveStartingIndex(t);
+        return transform.TransformPoint(BezierUtils.GetFirstDerivative(points[index], points[index+ 1], points[index + 2], points[index + 3], scaledT)) - transform.position;
     }
 
     public Vector3 GetDirection(float t)
@@ -69,7 +69,7 @@ public class BezierSpline : MonoBehaviour
         }
     }
 
-    private int getCurveStartingIndex(float t)
+    private int GetCurveStartingIndex(float t)
     {
         if(t >= 1f )
         {

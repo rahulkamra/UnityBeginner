@@ -8,7 +8,7 @@ public class BezierSplineInspector : Editor
     private Transform handleTransform;
     private Quaternion handleRotation;
 
-    private const int lineSteps = 10;
+    private const int stepsPerCurve = 10;
     private const float directionScale = 0.5f;
 
 
@@ -44,7 +44,6 @@ public class BezierSplineInspector : Editor
             
             Handles.DrawLine(p0, p1);
             Handles.DrawLine(p2, p3);
-
             
             Handles.DrawBezier(p0, p3, p1, p2, Color.white, null, 2f);
             p0 = p3;
@@ -63,28 +62,41 @@ public class BezierSplineInspector : Editor
         Handles.color = Color.green;
         Vector3 point = spline.GetPoint(0f);
         Handles.DrawLine(point, point + spline.GetDirection(0f) * directionScale);
-        for (int i = 1; i <= lineSteps; i++)
+        int steps = spline.CurveCount() * stepsPerCurve;
+        for (int i = 1; i <= steps; i++)
         {
-            point = spline.GetPoint(i / (float)lineSteps);
-            Handles.DrawLine(point, point + spline.GetDirection(i / (float)lineSteps) * directionScale);
+            point = spline.GetPoint(i / (float)steps);
+            Handles.DrawLine(point, point + spline.GetDirection(i / (float)steps) * directionScale);
         }
     }
+
+    private const float HandleSize = 0.04f;
+    private const float PickSize = 0.04f;
+    private int selectedIndex = -1;
 
     private Vector3 showPoint(int index)
     {
         Vector3 pointLocalPosition = spline.points[index];
         Vector3 pointWorldPosition = handleTransform.transform.TransformPoint(pointLocalPosition);
-        EditorGUI.BeginChangeCheck();
 
-        Vector3 changedPoint = Handles.PositionHandle(pointWorldPosition, handleRotation);
-        if (EditorGUI.EndChangeCheck())
+        float size = HandleUtility.GetHandleSize(pointWorldPosition);
+        if (Handles.Button(pointWorldPosition, handleRotation, HandleSize * size, PickSize * size, Handles.DotCap))
         {
-            Undo.RecordObject(spline, "MoviePoint");
-            EditorUtility.SetDirty(spline);
-            spline.points[index] = handleTransform.InverseTransformPoint(changedPoint);
+            this.selectedIndex = index;
         }
-
-        return changedPoint;
+        if (this.selectedIndex == index)
+        {
+            EditorGUI.BeginChangeCheck();
+            pointWorldPosition = Handles.DoPositionHandle(pointWorldPosition, handleRotation);
+            if (EditorGUI.EndChangeCheck())
+            {
+                Undo.RecordObject(spline, "MoviePoint");
+                EditorUtility.SetDirty(spline);
+                spline.points[index] = handleTransform.InverseTransformPoint(pointWorldPosition);
+            }
+        }
+        
+        return pointWorldPosition;
     }
 }
 

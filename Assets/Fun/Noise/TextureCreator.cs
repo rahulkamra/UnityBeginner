@@ -31,19 +31,36 @@ public class TextureCreator : MonoBehaviour {
             texture.Resize(Resolution, Resolution);
         }
 
+        Vector3 point00 = transform.TransformPoint(new Vector3(-0.5f, -0.5f));
+        Vector3 point10 = transform.TransformPoint(new Vector3(0.5f, -0.5f));
+        Vector3 point01 = transform.TransformPoint(new Vector3(-0.5f, 0.5f));
+        Vector3 point11 = transform.TransformPoint(new Vector3(0.5f, 0.5f));
+
+        UnityEngine.Random.InitState(42);
+
         float stepSize = 1f / Resolution;
         for (int idx = 0; idx < Resolution; idx++)
         {
+            Vector3 point0 = Vector3.Lerp(point00, point01, stepSize * (idx + 0.5f));
+            Vector3 point1 = Vector3.Lerp(point10, point11, stepSize * (idx + 0.5f));
+
             for (int jdx = 0; jdx < Resolution; jdx++)
             {
-                float xVal = (idx + 0.5f) * stepSize % 0.1f;
-                float yVal = (jdx + 0.5f) * stepSize % 0.1f;
-
-                texture.SetPixel(idx, jdx, new Color(xVal, yVal, 0f) * 10f) ;
+                Vector3 point = Vector3.Lerp(point0, point1, stepSize * (jdx + 0.5f));
+                texture.SetPixel(jdx, idx, Color.white *  Noise.Value(point,10)) ;
             }
         }
         texture.Apply();
     }
+
     
-    
+    private void Update()
+    {
+        if(transform.hasChanged)
+        {
+            transform.hasChanged = false;
+            FillTexture();
+        }
+    }
+
 }

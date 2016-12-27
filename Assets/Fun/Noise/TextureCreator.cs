@@ -8,15 +8,29 @@ public class TextureCreator : MonoBehaviour {
     [Range(2,1024)]
     public int Resolution = 256;
 
+    [Range(2, 1024)]
+    public int Frequency = 512;
+
+    [Range(1, 3)]
+    public int Dimention = 3;
+
+    public NoiseMthodType MethodType;
+
     private Texture2D texture;
-	void OnEnable()
+
+   
+
+
+    void OnEnable()
     {
-        if(texture == null)
+        
+       
+        if (texture == null)
         {
             texture = new Texture2D(Resolution, Resolution, TextureFormat.RGB24, false);
             texture.name = "Main Texture";
             texture.wrapMode = TextureWrapMode.Clamp;
-            texture.filterMode = FilterMode.Trilinear;
+            texture.filterMode = FilterMode.Point;
             texture.anisoLevel = 9;
             GetComponent<MeshRenderer>().material.mainTexture = texture;
         }
@@ -47,7 +61,14 @@ public class TextureCreator : MonoBehaviour {
             for (int jdx = 0; jdx < Resolution; jdx++)
             {
                 Vector3 point = Vector3.Lerp(point0, point1, stepSize * (jdx + 0.5f));
-                texture.SetPixel(jdx, idx, Color.white *  Noise.Value(point,10)) ;
+               
+                NoiseMethod method = Noise.NoiseMethods[(int)MethodType][Dimention - 1];
+                float sample = method(point, Frequency);
+
+                if(MethodType == NoiseMthodType.Perlin)
+                    sample = (sample + 1) * 0.5f;
+                
+                texture.SetPixel(jdx, idx, Color.white * sample) ;
             }
         }
         texture.Apply();

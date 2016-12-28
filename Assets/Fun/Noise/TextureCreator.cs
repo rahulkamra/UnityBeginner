@@ -14,6 +14,16 @@ public class TextureCreator : MonoBehaviour {
     [Range(1, 3)]
     public int Dimention = 3;
 
+    [Range(1,8)]
+    public int Octaves = 1;
+
+    [Range(1f, 4f)]
+    public float Lacunarity = 1;
+
+    [Range(0f, 1f)]
+    public float Persistence = 1;
+
+    public Gradient Coloring;
     public NoiseMthodType MethodType;
 
     private Texture2D texture;
@@ -63,12 +73,12 @@ public class TextureCreator : MonoBehaviour {
                 Vector3 point = Vector3.Lerp(point0, point1, stepSize * (jdx + 0.5f));
                
                 NoiseMethod method = Noise.NoiseMethods[(int)MethodType][Dimention - 1];
-                float sample = method(point, Frequency);
+                float sample = Noise.Sum(method,point, Frequency,Octaves,Lacunarity,Persistence);
 
                 if(MethodType == NoiseMthodType.Perlin)
                     sample = (sample + 1) * 0.5f;
                 
-                texture.SetPixel(jdx, idx, Color.white * sample) ;
+                texture.SetPixel(jdx, idx, Coloring.Evaluate(sample)) ;
             }
         }
         texture.Apply();

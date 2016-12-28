@@ -318,5 +318,22 @@ public static class Noise
         return g.x * x + g.y * y + g.z * z;
     }
 
+    public static float Sum(NoiseMethod method , Vector3 point , float frequency,int octaves, float lacunarity, float persistence)
+    {
+        float sum = method(point, frequency);
+        float amplitude = 1f;
+        float range = 1f;
+
+        for(int idxOct = 1; idxOct < octaves; idxOct++)
+        {
+            frequency *= lacunarity;
+            amplitude *= persistence;
+            range += amplitude;
+            sum += (method(point , frequency) * amplitude);
+        }
+
+        return sum / range;
+}
+
 }
 

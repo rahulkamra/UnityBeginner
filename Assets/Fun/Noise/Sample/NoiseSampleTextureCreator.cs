@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+
 using System.Collections;
 
 public class NoiseSampleTextureCreator : MonoBehaviour
@@ -22,9 +23,9 @@ public class NoiseSampleTextureCreator : MonoBehaviour
     private int col;
     private int row;
 
-
+    
     private Texture2D texture;
-
+    private ArrayList LinesToDraw;
     private void OnEnable()
     {
         if (texture == null)
@@ -51,21 +52,46 @@ public class NoiseSampleTextureCreator : MonoBehaviour
         float xOff = 0;
         float yOff = 0;
         PerlinNoise perlin = new PerlinNoise();
-
+        LinesToDraw = new ArrayList();
         for (int x = 0; x < Resolution; x++)
         {
             yOff = 0;
+
             for (int y = 0; y < Resolution; y++)
             {
+                float noise = perlin.OctavePerlin(xOff,yOff,0f,Octaves,Persistence);
+                Vector2 vector = RadianToVector2(0);
 
-                float noise = perlin.OctavePerlin(xOff,yOff,0f,Octaves,Persistence);//Mathf.PerlinNoise(xOff, yOff);               
+                int ix = (int)Mathf.Floor(x / Segmentation) * Segmentation;
+                int iy = (int)Mathf.Floor(y / Segmentation) * Segmentation;
+
+                Vector2 from = new Vector2(ix, iy);
+                DrawLine(from, from + vector.normalized);
+                  
                 texture.SetPixel(x, y, new Color(noise, noise, noise));
                 yOff += Increment;
             }
+
             xOff += Increment;
         }
         
         texture.Apply();
+    }
+
+    void DrawLine(Vector2 from , Vector2 to)
+    {
+        Vector2[] data = { from, to};
+        LinesToDraw.Add(data);
+    }
+
+
+    void Update()
+    {
+        for(int idx = 0; idx < LinesToDraw.Count; idx++)
+        {
+            Vector2[] values = (Vector2[])LinesToDraw[idx];
+            Debug.DrawLine(values[0], values[1], Color.red);
+        }
     }
 
 
@@ -82,4 +108,11 @@ public class NoiseSampleTextureCreator : MonoBehaviour
     {
         return (value - from1) / (to1 - from1) * (to2 - from2) + from2;
     }
+
+    public static Vector2 RadianToVector2(float radian)
+    {
+        return new Vector2(Mathf.Cos(radian), Mathf.Sin(radian));
+    }
+
+
 }

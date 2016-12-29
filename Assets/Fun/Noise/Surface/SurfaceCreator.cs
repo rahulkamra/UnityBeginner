@@ -40,6 +40,7 @@ public class SurfaceCreator : MonoBehaviour {
     public bool ColoringForStrength;
     public bool Damping;
     public bool ShowNormals;
+    public bool AnalyticalDerivatives;
 
     private Vector3[] vertices;
     private Vector3[] normals;
@@ -86,7 +87,7 @@ public class SurfaceCreator : MonoBehaviour {
                 Vector3 point = Vector3.Lerp(point0, point1, stepSize * (jdx));
 
                 
-                float sample = SurfaceNoise.Sum(method, point, Frequency, Octaves, Lacunarity, Persistence);
+                NoiseSample sample = SurfaceNoise.Sum(method, point, Frequency, Octaves, Lacunarity, Persistence);
 
                 if (MethodType == SurfaeNoiseMthodType.Value)
                     sample = sample - 0.5f;
@@ -96,23 +97,27 @@ public class SurfaceCreator : MonoBehaviour {
                 if(ColoringForStrength)
                 {
                     sample = sample * amplitude;
-                    colors[idv] = Coloring.Evaluate(sample + 0.5f);
+                    colors[idv] = Coloring.Evaluate(sample.Value + 0.5f);
                 }
                 else
                 {
-                    colors[idv] = Coloring.Evaluate(sample + 0.5f);
+                    colors[idv] = Coloring.Evaluate(sample.Value + 0.5f);
                     sample = sample * amplitude;
                 }
 
-                vertices[idv].y = sample;
-                
+                vertices[idv].y = sample.Value;
+                if(AnalyticalDerivatives)
+                {
+                    normals[idx] = new Vector3(-sample.Derivative.x, 1f, -sample.Derivative.y);
+                }
                 
             }
         }
 
         mesh.colors = colors;
         mesh.vertices = vertices;
-        CalculateNormals();
+        if(!AnalyticalDerivatives)
+            CalculateNormals();
         mesh.normals = normals;
     }
 

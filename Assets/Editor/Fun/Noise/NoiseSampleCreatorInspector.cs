@@ -13,8 +13,8 @@ public class NoiseSampleCreatorInspector : Editor
         EditorGUI.BeginChangeCheck();
         DrawDefaultInspector();
         if (EditorGUI.EndChangeCheck() && Application.isPlaying)
-        {
-            creator.FillTexture();
+        { 
+            creator.Redraw();
         }
     }
 
@@ -33,7 +33,7 @@ public class NoiseSampleCreatorInspector : Editor
     private void RefreshTexture()
     {
         if (Application.isPlaying)
-            creator.FillTexture();
+            creator.Redraw();
     }
 
 }

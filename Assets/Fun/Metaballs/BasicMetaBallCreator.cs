@@ -2,15 +2,11 @@
 using System.Collections;
 
 
-[RequireComponent(typeof(MeshFilter), typeof(MeshRenderer))]
-public class MetaBallCreator : MonoBehaviour
-{
-
-    // Use this for initialization
+public class BasicMetaBallCreator : MonoBehaviour {
 
 
     public int NumBalls = 4;
-    
+
     public Rect Bounds = new Rect(-50, -50, 100, 100);
     public int Segmentation = 20;
 
@@ -19,16 +15,20 @@ public class MetaBallCreator : MonoBehaviour
     public float BallRadius = 1f;
     public bool ShowDebug = false;
 
-    private ArrayList balls;
     
 
-    private ArrayList debugGameObjects;
-    private MeshFilter filter;
-    private MetaBallRenderer metaBallRenderer;
-    
+    protected ArrayList balls;
+    protected ArrayList debugGameObjects;
 
 
-    void Start()
+    // Use this for initialization
+    void Start ()
+    {
+
+        onStart();
+    }
+	
+    protected virtual void onStart()
     {
         balls = new ArrayList();
         debugGameObjects = new ArrayList();
@@ -48,31 +48,75 @@ public class MetaBallCreator : MonoBehaviour
             balls.Add(ball);
         }
 
-        metaBallRenderer = new MetaBallRenderer();
-        Mesh mesh = metaBallRenderer.Init(Bounds, new Vector2(Segmentation, Segmentation));
 
-        this.filter = this.GetComponent<MeshFilter>();
-        this.filter.mesh = mesh;
     }
-
-
-    void Update()
+    
+    void Update ()
     {
         updatePositions();
-        metaBallRenderer.Update(balls);
-        if(ShowDebug)
+        OnUpdate();
+
+        if (ShowDebug)
         {
             ApplyPositionToDebug();
             DrawBoundry();
         }
-        
-        
     }
 
-    
+    protected virtual void OnUpdate()
+    {
+
+    }
+
+
+    private void ApplyPositionToDebug()
+    {
+        for (int i = 0; i < balls.Count; i++)
+        {
+            Metaball ball = (Metaball)balls[i];
+            GameObject g = getDebugGameObject(i);
+            g.transform.position = ball.Position;
+        }
+    }
+
+
+    private GameObject getDebugGameObject(int index)
+    {
+        if (index >= debugGameObjects.Count)
+        {
+            GameObject gameObject = Instantiate(MetaBallDebugPrefab);
+            gameObject.transform.parent = transform.parent;
+            Vector3 bounds = gameObject.GetComponent<Renderer>().bounds.size;
+
+            float realXBound = 2f * BallRadius;
+            float scale = realXBound / bounds.x;
+            scale = gameObject.transform.localScale.x * scale;
+            gameObject.transform.localScale = new Vector3(scale, scale, 0);
+            debugGameObjects.Add(gameObject);
+            return gameObject;
+        }
+        else
+        {
+            return (GameObject)debugGameObjects[index];
+        }
+    }
+
+    private void DrawBoundry()
+    {
+        Color rectColor = Color.red;
+
+        Debug.DrawLine(new Vector3(Bounds.xMin, Bounds.yMin), new Vector3(Bounds.xMax, Bounds.yMin), rectColor);
+        Debug.DrawLine(new Vector3(Bounds.xMin, Bounds.yMin), new Vector3(Bounds.xMin, Bounds.yMax), rectColor);
+
+        Debug.DrawLine(new Vector3(Bounds.xMax, Bounds.yMin), new Vector3(Bounds.xMax, Bounds.yMax), rectColor);
+        Debug.DrawLine(new Vector3(Bounds.xMin, Bounds.yMax), new Vector3(Bounds.xMax, Bounds.yMax), rectColor);
+
+    }
+
+
     private void updatePositions()
     {
-        for(int i = 0; i < balls.Count; i++)
+        for (int i = 0; i < balls.Count; i++)
         {
             Metaball ball = (Metaball)balls[i];
 
@@ -91,57 +135,12 @@ public class MetaBallCreator : MonoBehaviour
                 ball.Velocity.y = -ball.Velocity.y;
             }
         }
-        
-    }
 
-
-    private void ApplyPositionToDebug()
-    {
-        for (int i = 0; i < balls.Count; i++)
-        {
-            Metaball ball = (Metaball)balls[i];
-            GameObject g = getDebugGameObject(i);
-            g.transform.position = ball.Position;
-        }
     }
 
     public Vector2 RadianToVector2(float radian)
     {
         return new Vector2(Mathf.Cos(radian), Mathf.Sin(radian));
     }
-
-    private GameObject getDebugGameObject(int index)
-    {
-        if(index >= debugGameObjects.Count)
-        {
-            GameObject gameObject = Instantiate(MetaBallDebugPrefab);
-            gameObject.transform.parent = transform.parent;
-            Vector3 bounds =  gameObject.GetComponent<Renderer>().bounds.size;
-
-            float realXBound = 2f * BallRadius;
-            float scale =  realXBound / bounds. x;
-            scale = gameObject.transform.localScale.x* scale;
-            gameObject.transform.localScale  = new Vector3(scale,scale,0);
-            debugGameObjects.Add(gameObject);
-            return gameObject;
-        }
-        else
-        {
-           return (GameObject)debugGameObjects[index];
-        }
-    }
-
-    private void DrawBoundry()
-    {
-        Color rectColor = Color.red;
-
-        Debug.DrawLine(new Vector3(Bounds.xMin, Bounds.yMin), new Vector3(Bounds.xMax, Bounds.yMin), rectColor);
-        Debug.DrawLine(new Vector3(Bounds.xMin, Bounds.yMin), new Vector3(Bounds.xMin, Bounds.yMax), rectColor);
-
-        Debug.DrawLine(new Vector3(Bounds.xMax, Bounds.yMin), new Vector3(Bounds.xMax, Bounds.yMax), rectColor);
-        Debug.DrawLine(new Vector3(Bounds.xMin, Bounds.yMax), new Vector3(Bounds.xMax, Bounds.yMax), rectColor);
-
-    }
-
 
 }

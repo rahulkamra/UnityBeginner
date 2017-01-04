@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-class MetaBallRenderer
+class CPUMetaBallRenderer
 {
     private Rect bounds;
     private Vector2 segmentation;

@@ -78,12 +78,15 @@ public class MetaBallCreator : MonoBehaviour
 
             ball.Position = ball.Position + ball.Velocity;
 
-            if(ball.Position.x > Bounds.xMax - BallRadius || ball.Position.x < Bounds.xMin + BallRadius)
+            float xOffset = 0f;
+            float yOffset = 0f;
+
+            if (ball.Position.x > Bounds.xMax - xOffset || ball.Position.x < Bounds.xMin + xOffset)
             {
                 ball.Velocity.x = -ball.Velocity.x;
             }
 
-            if (ball.Position.y > Bounds.yMax - BallRadius || ball.Position.y < Bounds.yMin + BallRadius)
+            if (ball.Position.y > Bounds.yMax - yOffset || ball.Position.y < Bounds.yMin + yOffset)
             {
                 ball.Velocity.y = -ball.Velocity.y;
             }

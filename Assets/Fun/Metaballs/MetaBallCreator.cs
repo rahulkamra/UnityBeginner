@@ -17,7 +17,7 @@ public class MetaBallCreator : MonoBehaviour
     public GameObject MetaBallDebugPrefab;
     public float MaxSpeed = 1;
     public float BallRadius = 1f;
-    public bool ShowDebug = true;
+    public bool ShowDebug = false;
 
     private ArrayList balls;
     
@@ -25,7 +25,7 @@ public class MetaBallCreator : MonoBehaviour
     private ArrayList debugGameObjects;
     private MeshFilter filter;
     private MetaBallRenderer metaBallRenderer;
-    private 
+    
 
 
     void Start()
@@ -43,7 +43,7 @@ public class MetaBallCreator : MonoBehaviour
                     Random.Range(Bounds.yMin, Bounds.yMax)
                 )
             );
-
+            ball.Radius = this.BallRadius;
             ball.Velocity = RadianToVector2(Random.Range(0f, 1f) * 2 * Mathf.PI) * MaxSpeed;
             balls.Add(ball);
         }
@@ -60,8 +60,12 @@ public class MetaBallCreator : MonoBehaviour
     {
         updatePositions();
         metaBallRenderer.Update(balls);
-        ApplyPositionToDebug();
-        DrawBoundry();
+        if(ShowDebug)
+        {
+            ApplyPositionToDebug();
+            DrawBoundry();
+        }
+        
         
     }
 
@@ -71,6 +75,7 @@ public class MetaBallCreator : MonoBehaviour
         for(int i = 0; i < balls.Count; i++)
         {
             Metaball ball = (Metaball)balls[i];
+
             ball.Position = ball.Position + ball.Velocity;
 
             if(ball.Position.x > Bounds.xMax - BallRadius || ball.Position.x < Bounds.xMin + BallRadius)

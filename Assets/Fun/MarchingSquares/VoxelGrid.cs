@@ -12,7 +12,7 @@ public class VoxelGrid : MonoBehaviour {
     private bool[] voxels;
     private float voxelSize;
 
-    private void Initialize(int resolution , float Size)
+    public void Initialize(int resolution , float Size)
     {
         this.Resolution = resolution;
         voxelSize = Size / Resolution;
@@ -37,6 +37,11 @@ public class VoxelGrid : MonoBehaviour {
         obj.transform.parent = this.transform;
         obj.transform.localPosition = new Vector3((x + 0.5f) * voxelSize, (y + 0.5f) * voxelSize);
         obj.transform.localScale = Vector3.one * voxelSize * 0.9f;
+    }
+
+    public void setVoxel(int x , int y , bool state)
+    {
+        voxels[y * Resolution + x] = state;
     }
 
     

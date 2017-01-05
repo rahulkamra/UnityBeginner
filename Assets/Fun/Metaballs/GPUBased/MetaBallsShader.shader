@@ -64,7 +64,7 @@
 
 				if (contrib > 1)
 				{
-					return fixed4(1, 0, 0, 1);
+					return fixed4(0.5294, 0.850, 0.960, 1);
 				}
 				else
 				{

@@ -72,13 +72,13 @@ public class VoxelMap : MonoBehaviour
         int voxelX = (int)((point.x + halfSize) / voxelSize);
         int voxelY = (int)((point.y + halfSize) / voxelSize);
 
-        int chunkX = voxelX / ChunkResolution;
-        int chunkY = voxelY / ChunkResolution;
-
-
-
-        Debug.Log(voxelX + ", " + voxelY + " in chunk " + chunkX + ", " + chunkY);
-
+        int chunkX = voxelX / VoxelResolution;
+        int chunkY = voxelY / VoxelResolution;
+        
+        voxelX -= chunkX * VoxelResolution;
+        voxelY -= chunkY * VoxelResolution;
+        
+        chunks[chunkY * ChunkResolution + chunkX].setVoxel(voxelX, voxelY, true);
     }
 
 }

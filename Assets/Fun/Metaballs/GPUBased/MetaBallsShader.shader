@@ -62,13 +62,17 @@
 					
 				};
 
+				if (contrib > 0.95 && contrib < 1)
+				{
+					return fixed4(1,1,1, 1);
+				}
 				if (contrib > 1)
 				{
 					return fixed4(0.5294, 0.850, 0.960, 1);
 				}
 				else
 				{
-					return fixed4(1, 1, 1, 1);
+					return fixed4(0, 0, 0, 0);
 				}
 
 				

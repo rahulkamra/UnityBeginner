@@ -15,8 +15,12 @@ public class VoxelMap : MonoBehaviour
 
 
     private VoxelGrid[] chunks;
-
     private float chunkSize, voxelSize, halfSize;
+
+    private static string[] fillTypeNames = {"Filled" , "Empty" };
+    private static string[] radiusName = { "0", "1", "2", "3", "4" , "5"};
+    private int fillTypeIndex , radiusIndex;
+
 
     private void Awake()
     {
@@ -69,16 +73,56 @@ public class VoxelMap : MonoBehaviour
 
     private void editVoxel(Vector3 point)
     {
-        int voxelX = (int)((point.x + halfSize) / voxelSize);
-        int voxelY = (int)((point.y + halfSize) / voxelSize);
+        int centerX = (int)((point.x + halfSize) / voxelSize);
+        int centerY = (int)((point.y + halfSize) / voxelSize);
 
-        int chunkX = voxelX / VoxelResolution;
-        int chunkY = voxelY / VoxelResolution;
+        int xStart = (centerX - radiusIndex) / VoxelResolution;
+        int xEnd = (centerX + radiusIndex) / VoxelResolution;
+
+        int yStart = (centerY - radiusIndex) / VoxelResolution;
+        int yEnd = (centerY + radiusIndex) / VoxelResolution;
+
+
+        if (xStart < 0)
+            xStart = 0;
+
+        if (xEnd >= ChunkResolution)
+            xEnd = ChunkResolution - 1;
+
+        if (yStart < 0)
+            yStart = 0;
+
+        if (yEnd >= ChunkResolution)
+            yEnd = ChunkResolution - 1;
+
         
-        voxelX -= chunkX * VoxelResolution;
-        voxelY -= chunkY * VoxelResolution;
-        
-        chunks[chunkY * ChunkResolution + chunkX].setVoxel(voxelX, voxelY, true);
+        VoxelStencil stencil = new VoxelStencil();
+        stencil.Initialize(fillTypeIndex == 0,radiusIndex);
+
+        int voxelYOffset = yStart * VoxelResolution;
+        for (int y = yStart; y <= yEnd; y++)
+        {
+            int i = y * ChunkResolution + xStart;
+            int voxelXOffset = xStart * VoxelResolution;
+            for (int x = xStart; x <= xEnd; x++, i++)
+            {
+                stencil.SetCenter(centerX - voxelXOffset, centerY - voxelYOffset);
+                chunks[i].Apply(stencil);
+                voxelXOffset += VoxelResolution;
+            }
+            voxelYOffset += VoxelResolution;
+        }
+    }
+
+
+    private void OnGUI()
+    {
+        GUILayout.BeginArea(new Rect(4f ,4f , 150f ,500f));
+        GUILayout.Label("Fill Type");
+        fillTypeIndex = GUILayout.SelectionGrid(fillTypeIndex, fillTypeNames, fillTypeNames.Length);
+        GUILayout.Label("Radius");
+        radiusIndex = GUILayout.SelectionGrid(radiusIndex, radiusName, radiusName.Length);
+        GUILayout.EndArea();
     }
 
 }

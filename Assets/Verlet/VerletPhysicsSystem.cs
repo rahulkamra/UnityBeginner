@@ -6,6 +6,7 @@ public class VerletPhysicsSystem : MonoBehaviour
 {
     public Rect Bounds;
     public Vector2 Gravity;
+    public float SurfaceBounce = 0.8f;
 
     public void OnEnable()
     {
@@ -19,6 +20,7 @@ public class VerletPhysicsSystem : MonoBehaviour
     }
 
     private ArrayList bodies = new ArrayList();
+
     void Update()
     {
         float deltaTime = Time.deltaTime;
@@ -39,8 +41,8 @@ public class VerletPhysicsSystem : MonoBehaviour
             float vx = collider.x - collider.px;
             float vy = collider.y - collider.py;
 
-          //  vy += Gravity.y;
-          //  vx += Gravity.x;
+            vy += Gravity.y;
+            vx += Gravity.x;
 
             collider.lastVX = vx;
             collider.lastVY = vy;
@@ -50,7 +52,7 @@ public class VerletPhysicsSystem : MonoBehaviour
 
             collider.x += vx;
             collider.y += vy;
-
+            
             boundryCheck(collider, vx, vy);
         }
     }
@@ -64,35 +66,35 @@ public class VerletPhysicsSystem : MonoBehaviour
         }
     }
 
+
     private void boundryCheck(VerletCircleCollider collider, float vx, float vy)
     {
-        if (collider.x > Bounds.xMax)
+        if (collider.x >= Bounds.xMax)
         {
             collider.x = Bounds.xMax;
-            collider.px = Bounds.xMax + vx;
+            collider.px = Bounds.xMax + vx * SurfaceBounce;
         }
 
-        if (collider.y > Bounds.yMax)
+        if (collider.y >= Bounds.yMax)
         {
             collider.y = Bounds.yMax;
-            collider.py = Bounds.yMax + vy;
+            collider.py = Bounds.yMax + vy * SurfaceBounce;
         }
-
-
-        if (collider.x < Bounds.xMin)
+        
+        if (collider.x <= Bounds.xMin)
         {
             collider.x = Bounds.xMin;
-            collider.px = Bounds.xMin + vx;
+            collider.px = Bounds.xMin + vx * SurfaceBounce;
         }
 
-        if (collider.y < Bounds.yMin)
+        if (collider.y <= Bounds.yMin)
         {
             collider.y = Bounds.yMin;
-            collider.py = Bounds.yMin + vy;
+            collider.py = Bounds.yMin + vy * SurfaceBounce;
+            //friction is always perpendicular to the axis of collision
         }
-
-
     }
+
 
     private void solveCollision()
     {
@@ -100,9 +102,8 @@ public class VerletPhysicsSystem : MonoBehaviour
         {
             for (int j = 0; j < bodies.Count; j++)
             {
-                if (i >= j)
+                if (i <= j)
                     continue;
-
                 VerletCircleCollider collider1 = (VerletCircleCollider)bodies[i];
                 VerletCircleCollider collider2 = (VerletCircleCollider)bodies[j];
                 float distance = collider1.getDistance(collider2);
@@ -116,29 +117,29 @@ public class VerletPhysicsSystem : MonoBehaviour
         }
     }
 
-    private void handleCollision(VerletCircleCollider collider1, VerletCircleCollider collider2)
+    private void handleCollision(VerletCircleCollider body1, VerletCircleCollider body2)
     {
-        float collisionPointX = ((collider1.x * collider2.radius) + (collider2.x + collider1.radius)) / (collider1.radius + collider2.radius);
-        float collisionPointY = ((collider1.y * collider2.radius) + (collider2.y + collider1.radius)) / (collider1.radius + collider2.radius);
+        float x = body1.x - body2.x;
+        float y = body1.y - body2.y;
+        float slength = x * x + y * y;
+        float length = Mathf.Sqrt(slength);
+        float target = body1.radius + body2.radius;
 
-        float vx1 = (collider1.lastVX * (collider1.mass - collider2.mass) +(2 * collider2.mass * collider2.lastVX)) / (collider1.mass + collider2.mass);
-        float vy1 = (collider1.lastVY * (collider1.mass - collider2.mass) +(2 * collider2.mass * collider2.lastVY)) / (collider1.mass + collider2.mass);
-        float vx2 = (collider2.lastVX * (collider2.mass - collider1.mass) +(2 * collider1.mass * collider1.lastVX)) / (collider1.mass + collider2.mass);
-        float vy2 = (collider2.lastVY * (collider2.mass - collider1.mass) +(2 * collider1.mass * collider1.lastVY)) / (collider1.mass + collider2.mass);
+        if (length < target)
+        {
+            var factor = (length - target) / length;
 
-        
-        collider1.px = collider1.x;
-        collider1.py = collider1.y;
+            body1.x -= x * factor * 0.5f;
+            body1.x += body1.friction * body1.mass;
 
-        collider1.x += vx1 * (collider1.dynamicFriction);
-        collider1.y += vy1 * (collider1.dynamicFriction);
+            body1.y -= y * factor * 0.5f;
+            body1.y += body1.friction * body1.mass;
 
+            body2.x += x * factor * 0.5f;
+            body2.x -= body2.friction * body2.mass;
 
-
-        collider2.px = collider2.x;
-        collider2.py = collider2.y;
-
-      //  collider2.x += vx2 * (collider2.dynamicFriction);
-       // collider2.y += vy2 * (collider2.dynamicFriction);
+            body2.y += y * factor * 0.5f;
+            body2.y -= body2.friction * body2.mass;
+        }
     }
 }

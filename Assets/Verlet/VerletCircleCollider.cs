@@ -11,8 +11,8 @@ public class VerletCircleCollider : MonoBehaviour {
         this.py = this.y;
         GameObject.Find("PhysicsSystem").GetComponent<VerletPhysicsSystem>().AddCircleCollider(this);
 
-        this.x += Random.Range(0f, 1f) * 0.1f;
-        this.y += Random.Range(0f, 1f) * 0.01f;
+        this.x += Random.Range(-1f, 1f) * 0.1f;
+        this.y += Random.Range(-1f, 1f) * 0.01f;
     }
 
     [SerializeField]
@@ -62,7 +62,15 @@ public class VerletCircleCollider : MonoBehaviour {
 
     public void Apply()
     {
-        this.transform.position = new Vector3(x, y, this.transform.position.z);
+        try
+        {
+            this.transform.position = new Vector3(x, y, this.transform.position.z);
+        }
+        catch(UnityException e)
+        {
+            Debug.Log("a");
+        }
+        
     }
 
     private void Update()

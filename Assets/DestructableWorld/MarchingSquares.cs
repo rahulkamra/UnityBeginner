@@ -21,6 +21,7 @@ public class MarchingSquares : MonoBehaviour
 
     public float HoleRadius = 2f;
     public List<Vector2> Holes;
+    public List<EdgeCollider2D> edgeColliders;
 
     void Start()
     {
@@ -30,20 +31,24 @@ public class MarchingSquares : MonoBehaviour
         xStep = Bounds.width / cols;
         yStep = Bounds.height / rows;
 
+        edgeColliders = new List<EdgeCollider2D>();
+
         initMarchedArray();
 
         GameObject lineDrawerObj = GameObject.Find("LineDrawer");
         this.lineDrawer =  lineDrawerObj.GetComponent<LineDrawer>();
 
-        RenderBlocks();
-        RenderGrid();
 
+
+
+        RefreshEverything();  
         AddHole(-9f, -9f);
         AddHole(-1f, -1f);
+        RefreshEverything();
 
-        lineDrawer.ClearAll();
-        RenderBlocks();
-        RenderGrid();
+        //GetComponent<EdgeCollider2D>().points;
+
+        // 
     }
 
 
@@ -81,28 +86,46 @@ public class MarchingSquares : MonoBehaviour
     private void AddHole(float x , float y)
     {
         this.Holes.Add(new Vector2(x, y));
+    }
 
-        Vector2 gridCoordinate =  GetRowCols(x, y);
-        Vector2 localCoordinate = new Vector2(x, y);
+    private void RefreshEverything()
+    {
+        lineDrawer.ClearAll();
+        RefreshMarchingSquare();
+        RenderBlocks();
+        RenderGrid();
+        CreateCollider();
+    }
 
-        int xGridChange = Mathf.CeilToInt(HoleRadius / xStep);
-        int yGridChange = Mathf.CeilToInt(HoleRadius / yStep);
-
-        
-        int minXGrid = Clamp((int)gridCoordinate.x - xGridChange - 1, 0, cols - 1);
-        int maxXGrid = Clamp((int)gridCoordinate.x + xGridChange + 1, 0, cols - 1);
-        
-        int minYGrid = Clamp((int)gridCoordinate.y - yGridChange - 1, 0, rows - 1);
-        int maxYGrid = Clamp((int)gridCoordinate.y + yGridChange, 0, rows - 1);
-
-        for(int col = minXGrid; col < maxXGrid; col++)
+    private void RefreshMarchingSquare()
+    {
+        for(int h = 0; h < this.Holes.Count; h ++)
         {
-            for (int row = minYGrid; row < maxYGrid; row++)
+            Vector2 localCoordinate = this.Holes[h];
+
+            Vector2 gridCoordinate = GetRowCols(localCoordinate.x, localCoordinate.y);
+            
+            int xGridChange = Mathf.CeilToInt(HoleRadius / xStep);
+            int yGridChange = Mathf.CeilToInt(HoleRadius / yStep);
+
+
+            int minXGrid = Clamp((int)gridCoordinate.x - xGridChange - 1, 0, cols - 1);
+            int maxXGrid = Clamp((int)gridCoordinate.x + xGridChange + 1, 0, cols - 1);
+
+            int minYGrid = Clamp((int)gridCoordinate.y - yGridChange - 1, 0, rows - 1);
+            int maxYGrid = Clamp((int)gridCoordinate.y + yGridChange, 0, rows - 1);
+
+            for (int col = minXGrid; col < maxXGrid; col++)
             {
-                processCellCircleHole(row, col , localCoordinate, HoleRadius);
+                for (int row = minYGrid; row < maxYGrid; row++)
+                {
+                    processCellCircleHole(row, col, localCoordinate, HoleRadius);
+                }
             }
         }
+       
     }
+  
 
     private void processCellCircleHole(int row, int col , Vector2 origin , float radius)
     {
@@ -243,8 +266,32 @@ public class MarchingSquares : MonoBehaviour
         return edge;
     }
 
- 
 
+    public void CreateCollider()
+    {
+        for(int c = 0; c < edgeColliders.Count; c++)
+        {
+            Destroy(edgeColliders[c]);
+        }
+
+
+        List<Vector2> points = new List<Vector2>();
+        for (int y = 0; y < cols; y++)
+        {
+            for (int x = 0; x < rows; x++)
+            {
+                LineModel lineModel =  getLineModel(x, y);
+                EdgeCollider2D collider = this.gameObject.AddComponent<EdgeCollider2D>();
+                this.edgeColliders.Add(collider);
+
+                Vector2[] colliderPoints = new Vector2[2];
+
+                colliderPoints[0] = lineModel.from;
+                colliderPoints[1] = lineModel.to;
+                collider.points = colliderPoints;
+            }
+        }
+    }
 
 
     public void RenderBlocks()

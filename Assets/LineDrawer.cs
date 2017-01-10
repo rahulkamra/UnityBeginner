@@ -10,6 +10,11 @@ public class LineDrawer : MonoBehaviour {
     {
         this.lineModel.Add(model);
     }
+
+    public void ClearAll()
+    {
+        lineModel = new List<LineModel>();
+    }
 	// Update is called once per frame
 	void Update ()
     {
@@ -26,6 +31,10 @@ public class LineDrawer : MonoBehaviour {
 
 public class LineModel
 {
+    public LineModel()
+    {
+
+    }
     public LineModel(Vector3 from , Vector3 to , Color color)
     {
         this.from = from;

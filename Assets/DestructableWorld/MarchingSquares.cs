@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class MarchingSquares : MonoBehaviour
 {
@@ -7,9 +8,8 @@ public class MarchingSquares : MonoBehaviour
     public Rect Bounds;
     public Vector2 Segmentation;
 
-    private uint[,] MarchedArray;
-    private Edge[,] MarchedEdgeArray;
-
+    private bool[,] DotArray;
+    
     private float xStep;
     private float yStep;
 
@@ -17,6 +17,11 @@ public class MarchingSquares : MonoBehaviour
     private int rows;
 
     private LineDrawer lineDrawer;
+
+
+    public float HoleRadius = 2f;
+    public List<Vector2> Holes;
+
     void Start()
     {
         cols = Mathf.FloorToInt(Segmentation.x);
@@ -30,57 +35,152 @@ public class MarchingSquares : MonoBehaviour
         GameObject lineDrawerObj = GameObject.Find("LineDrawer");
         this.lineDrawer =  lineDrawerObj.GetComponent<LineDrawer>();
 
-        RenderEdges();
+        RenderBlocks();
+        RenderGrid();
+
+        AddHole(-9f, -9f);
+        AddHole(-1f, -1f);
+
+        lineDrawer.ClearAll();
+        RenderBlocks();
         RenderGrid();
     }
 
 
     private void initMarchedArray()
     {
-        MarchedArray = new uint[rows,cols];
-        MarchedEdgeArray = new Edge[rows, cols];
+        DotArray = new bool[rows + 1, cols + 1];
 
-
-        for (int y = 0; y < cols; y++)
+        for (int col = 0; col <= cols; col++)
         {
-            for (int x = 0; x < rows; x++)
+            for (int row = 0; row <= rows; row++)
             {
-                if(x == 0)
+                if(col == 0)
                 {
-                    setMarchedValue(x, y, 0110);
+                    DotArray[row, col] = true;
                 }
 
-                if (x == rows-1)
+                if (col == cols)
                 {
-                    setMarchedValue(x, y, 1001);
+                    DotArray[row, col] = true;
                 }
 
-                if (y == 0)
+                if (row == rows)
                 {
-                    setMarchedValue(x, y, 0011);
+                    DotArray[row, col] = true;
                 }
 
-                if (y == cols - 1)
+                if (row == 0)
                 {
-                    setMarchedValue(x, y, 1100);
+                    DotArray[row, col] = true;
                 }
             }
         }
     }
+    
+    private void AddHole(float x , float y)
+    {
+        this.Holes.Add(new Vector2(x, y));
+
+        Vector2 gridCoordinate =  GetRowCols(x, y);
+        Vector2 localCoordinate = new Vector2(x, y);
+
+        int xGridChange = Mathf.CeilToInt(HoleRadius / xStep);
+        int yGridChange = Mathf.CeilToInt(HoleRadius / yStep);
+
+        
+        int minXGrid = Clamp((int)gridCoordinate.x - xGridChange - 1, 0, cols - 1);
+        int maxXGrid = Clamp((int)gridCoordinate.x + xGridChange + 1, 0, cols - 1);
+        
+        int minYGrid = Clamp((int)gridCoordinate.y - yGridChange - 1, 0, rows - 1);
+        int maxYGrid = Clamp((int)gridCoordinate.y + yGridChange, 0, rows - 1);
+
+        for(int col = minXGrid; col < maxXGrid; col++)
+        {
+            for (int row = minYGrid; row < maxYGrid; row++)
+            {
+                processCellCircleHole(row, col , localCoordinate, HoleRadius);
+            }
+        }
+    }
+
+    private void processCellCircleHole(int row, int col , Vector2 origin , float radius)
+    {
+        bool tlBit = DotArray[row + 1, col];
+        bool trBit = DotArray[row + 1, col + 1];
+        bool brBit = DotArray[row, col + 1];
+        bool blBit = DotArray[row, col];
+
+        
+        Vector2 localCoordinates = GetLocalCoordinates(row, col);
+
+        if(!tlBit) 
+        {
+            Vector2 tl = new Vector2(localCoordinates.x - xStep * 0.5f, localCoordinates.y + yStep * 0.5f);
+            tlBit = Vector2.Distance(tl, origin) <= radius;
+            DotArray[row + 1, col] = tlBit;
+        }
+
+        if (!trBit)
+        {
+            Vector2 tr = new Vector2(localCoordinates.x + xStep * 0.5f, localCoordinates.y + yStep * 0.5f);
+            trBit = Vector2.Distance(tr, origin) <= radius;
+            DotArray[row + 1, col + 1] = trBit;
+        }
+
+        if (!brBit)
+        {
+            Vector2 br = new Vector2(localCoordinates.x + xStep * 0.5f, localCoordinates.y - yStep * 0.5f);
+            brBit = Vector2.Distance(br, origin) <= radius;
+            DotArray[row, col + 1] = brBit;
+        }
+
+        if (!blBit)
+        {
+            Vector2 bl = new Vector2(localCoordinates.x - xStep * 0.5f, localCoordinates.y - yStep * 0.5f);
+            blBit = Vector2.Distance(bl, origin) <= radius;
+            DotArray[row, col] = blBit;
+        }
+        
+    }
 
 
+    private uint getValue(int row , int col)
+    {
+        bool tlBit = DotArray[row + 1, col];
+        bool trBit = DotArray[row + 1, col + 1];
+        bool brBit = DotArray[row, col + 1];
+        bool blBit = DotArray[row, col];
+
+        uint value = 0;
+
+        if (tlBit)
+            value += 1000;
+        if (trBit)
+            value += 100;
+        if (brBit)
+            value += 10;
+        if (blBit)
+            value += 1;
+
+        return value;
+    }
 
     //X,y is the center of the block
     //Same pattern as https://en.wikipedia.org/wiki/Marching_squares
-    public Edge getEdge(float x,float y,uint value)
+    public LineModel getLineModel(int row ,int col)
     {
+        Vector2 localCooridnates =  GetLocalCoordinates(row, col);
+        uint value = getValue(row , col);
+        float x = localCooridnates.x;
+        float y = localCooridnates.y;
 
-        Edge edge = new Edge();
+        LineModel edge = new LineModel();
        
-
         switch (value)
         {
             case 1110:
+            case 0001:
                 edge.from.x = x - xStep/2f;
                 edge.from.y = y;
 
@@ -88,6 +188,33 @@ public class MarchingSquares : MonoBehaviour
                 edge.to.y = y - yStep / 2f;
                 break;
 
+
+            case 1101:
+            case 0010:
+                edge.from.x = x;
+                edge.from.y = y - yStep * 0.5f;
+
+                edge.to.x = x + xStep * 0.5f;
+                edge.to.y = y;
+                break;
+
+            case 1011:
+            case 0100:
+                edge.from.x = x;
+                edge.from.y = y + yStep * 0.5f;
+
+                edge.to.x = x + xStep * 0.5f;
+                edge.to.y = y;
+                break;
+
+            case 0111:
+            case 1000:
+                edge.from.x = x - xStep * 0.5f;
+                edge.from.y = y;
+
+                edge.to.x = x;
+                edge.to.y = y + yStep * 0.5f;
+                break;
 
             case 1001:
             case 0110:
@@ -106,9 +233,9 @@ public class MarchingSquares : MonoBehaviour
                 edge.to.x = x + xStep / 2f;
                 edge.to.y = y;
                 break;
-
+                
             default:
-                Debug.LogError("Unhandled case");
+                //Debug.LogError("Unhandled case");
                 break;
 
         }
@@ -120,40 +247,37 @@ public class MarchingSquares : MonoBehaviour
 
 
 
-    public void RenderEdges()
+    public void RenderBlocks()
     {
-        for (int y = 0; y < rows; y++)
+        for (int y = 0; y < cols; y++)
         {
             for (int x = 0; x < rows; x++)
             {
-                if (MarchedEdgeArray[x, y] != null)
-                {
-                    Edge edge = MarchedEdgeArray[x, y];
-                    RenderEdge(edge);
-                }
+
+                RenderBlock(x,y);
             }
         }
     }
 
-    private Vector2 GetSquareCoodinates(int x , int y)
+    private Vector2 GetRowCols(float x , float y)
     {
-        return new Vector2(Bounds.xMin + x * xStep + xStep * 0.5f , Bounds.yMin + y * yStep + yStep * 0.5f);
+        return new Vector2(Mathf.FloorToInt((x - Bounds.xMin) / xStep), Mathf.FloorToInt((y - Bounds.yMin) / yStep));
+    }
+
+    private Vector2 GetLocalCoordinates(int row , int col)
+    {
+        return new Vector2(Bounds.xMin + col * xStep + xStep * 0.5f , Bounds.yMin + row * yStep + yStep * 0.5f);
     }
 
 
-    private void RenderEdge(Edge edge)
+    private void RenderBlock(int row , int col)
     {
-        lineDrawer.AddLineToDraw(new LineModel(new Vector3(edge.from.x , edge.from.y), new Vector3(edge.to.x, edge.to.y),Color.red));
+        LineModel lineModel =  getLineModel(row, col);
+        lineModel.color = Color.red;
+        lineDrawer.AddLineToDraw(lineModel);
     }
 
-    private void setMarchedValue(int x , int y , uint value)
-    {
-        MarchedArray[x, y] = value;
-        Vector2 localCoordinates =  GetSquareCoodinates(x, y);
-        Edge edge =  getEdge(localCoordinates.x, localCoordinates.y, value);
-        MarchedEdgeArray[x, y] = edge;
-    }
-
+   
     private void RenderGrid()
     {
         for (int r = 0; r <= rows; r++)
@@ -170,11 +294,12 @@ public class MarchingSquares : MonoBehaviour
                 new Vector3(Bounds.xMin + xStep * c, Bounds.yMax), Color.white));
         }
     }
+
+
+    public static int Clamp(int value, int min, int max)
+    {
+        return (value < min) ? min : (value > max) ? max : value;
+    }
 }
 
-public class Edge
-{
-    public Vector2 from = new Vector2();
-    public Vector2 to = new Vector2();
 
-}

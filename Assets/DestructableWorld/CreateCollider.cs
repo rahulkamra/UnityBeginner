@@ -54,8 +54,17 @@ public class CreateCollider
             return;
         }
 
-        numItemsTraversed++;
+        
+        if(traversed[targetCell.row, targetCell.col])
+        {
+            Cell cell = allList[0];
+            allList.RemoveAt(0);
+            fillCells(cell);
+            return;
+        }
+
         traversed[targetCell.row, targetCell.col] = true;
+        numItemsTraversed++;
         if (isCountourCell(targetCell))
         {
             currentList.Add(targetCell);
@@ -68,6 +77,7 @@ public class CreateCollider
             {
                 finishCurrent();
                 Cell cell = allList[0];
+                
                 allList.RemoveAt(0);
                 fillCells(cell);
             }

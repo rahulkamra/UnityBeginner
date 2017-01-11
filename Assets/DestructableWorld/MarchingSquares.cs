@@ -54,14 +54,14 @@ public class MarchingSquares : MonoBehaviour
 
         
         RefreshEverything();  
-        AddHole(-9f, -9f);
-        AddHole(-1f, -1f);
-        AddHole(-1f, 0f);
-        AddHole(-1f, 1f);
-        AddHole(-1f, 2f);
-        AddHole(-1f, 4f);
-        AddHole(-1f, 7f);
-        AddHole(-1f, 9f);
+       // AddHole(-9f, -9f);
+       // AddHole(-1f, -1f);
+       // AddHole(-1f, 0f);
+       // AddHole(-1f, 1f);
+       // AddHole(-1f, 2f);
+       // AddHole(-1f, 4f);
+       // AddHole(-1f, 7f);
+       // AddHole(-1f, 9f);
         RefreshEverything();
 
        
@@ -99,15 +99,17 @@ public class MarchingSquares : MonoBehaviour
         }
     }
     
-    private void AddHole(float x , float y)
+    public void AddHole(float x , float y)
     {
         this.Holes.Add(new Vector2(x, y));
         RefreshMarchingSquare(new Vector2(x, y));
+        RefreshEverything();
     }
 
     private void RefreshEverything()
     {
-        lineDrawer.ClearAll();
+        if(lineDrawer)
+            lineDrawer.ClearAll();
         RenderBlocks();
         RenderGrid();
         CreateCollider();
@@ -375,14 +377,20 @@ public class MarchingSquares : MonoBehaviour
     {
         LineModel lineModel =  getLineModel(row, col);
         lineModel.color = Color.red;
-        lineDrawer.AddLineToDraw(lineModel);
+        if(lineDrawer)
+            lineDrawer.AddLineToDraw(lineModel);
     }
 
    
     private void RenderGrid()
     {
+        if (lineDrawer == null)
+            return;
+
+
         for (int r = 0; r <= rows; r++)
         {
+            
             lineDrawer.AddLineToDraw(new LineModel(
                 new Vector3(Bounds.xMin, Bounds.yMin + yStep * r),
                 new Vector3(Bounds.xMax, Bounds.yMin + yStep * r), Color.white));

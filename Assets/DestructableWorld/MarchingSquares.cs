@@ -20,8 +20,13 @@ public class MarchingSquares : MonoBehaviour
 
 
     public float HoleRadius = 2f;
-    public List<Vector2> Holes;
-    public List<EdgeCollider2D> edgeColliders;
+
+    private List<Vector2> Holes;
+    private List<EdgeCollider2D> edgeColliders;
+
+    public GameObject[] Prefabs;
+    private Dictionary<string,GameObject> cache;
+
 
     void Start()
     {
@@ -32,23 +37,34 @@ public class MarchingSquares : MonoBehaviour
         yStep = Bounds.height / rows;
 
         edgeColliders = new List<EdgeCollider2D>();
+        cache = new Dictionary<string, GameObject>();
+        Holes = new List<Vector2>();
+
+
+        for (int p = 0;p < Prefabs.Length; p++)
+        {
+            cache[Prefabs[p].name] = Prefabs[p];
+        }
+
 
         initMarchedArray();
 
         GameObject lineDrawerObj = GameObject.Find("LineDrawer");
         this.lineDrawer =  lineDrawerObj.GetComponent<LineDrawer>();
 
-
-
-
+        
         RefreshEverything();  
         AddHole(-9f, -9f);
         AddHole(-1f, -1f);
+        AddHole(-1f, 0f);
+        AddHole(-1f, 1f);
+        AddHole(-1f, 2f);
+        AddHole(-1f, 4f);
+        AddHole(-1f, 7f);
+        AddHole(-1f, 9f);
         RefreshEverything();
 
-        //GetComponent<EdgeCollider2D>().points;
-
-        // 
+       
     }
 
 
@@ -86,22 +102,21 @@ public class MarchingSquares : MonoBehaviour
     private void AddHole(float x , float y)
     {
         this.Holes.Add(new Vector2(x, y));
+        RefreshMarchingSquare(new Vector2(x, y));
     }
 
     private void RefreshEverything()
     {
         lineDrawer.ClearAll();
-        RefreshMarchingSquare();
         RenderBlocks();
         RenderGrid();
         CreateCollider();
     }
 
-    private void RefreshMarchingSquare()
+    private void RefreshMarchingSquare(Vector2 hole)
     {
-        for(int h = 0; h < this.Holes.Count; h ++)
-        {
-            Vector2 localCoordinate = this.Holes[h];
+      
+            Vector2 localCoordinate = hole;
 
             Vector2 gridCoordinate = GetRowCols(localCoordinate.x, localCoordinate.y);
             
@@ -122,8 +137,6 @@ public class MarchingSquares : MonoBehaviour
                     processCellCircleHole(row, col, localCoordinate, HoleRadius);
                 }
             }
-        }
-       
     }
   
 
@@ -267,8 +280,12 @@ public class MarchingSquares : MonoBehaviour
     }
 
 
+    
+    
     public void CreateCollider()
     {
+        new CreateCollider().Create(DotArray);
+        return;
         for(int c = 0; c < edgeColliders.Count; c++)
         {
             Destroy(edgeColliders[c]);
@@ -282,6 +299,8 @@ public class MarchingSquares : MonoBehaviour
             {
                 LineModel lineModel =  getLineModel(x, y);
                 EdgeCollider2D collider = this.gameObject.AddComponent<EdgeCollider2D>();
+                collider.hideFlags = HideFlags.HideInInspector;
+
                 this.edgeColliders.Add(collider);
 
                 Vector2[] colliderPoints = new Vector2[2];

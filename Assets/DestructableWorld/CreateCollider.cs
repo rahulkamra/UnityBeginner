@@ -16,7 +16,7 @@ public class CreateCollider
 
     private int numItemsTraversed = 0;
 
-    public void Create(bool[,] dotsArray)
+    public List<List<Cell>> Create(bool[,] dotsArray)
     {
         result = new List<List<Cell>>();
 
@@ -24,7 +24,7 @@ public class CreateCollider
         this.rows = dotsArray.GetLength(0) - 1; // the blocks are one less than points
         this.cols = dotsArray.GetLength(1) - 1;
         execute();
-        Debug.Log(111);
+        return result;
         //We need to find shapes in this 2dArray which are connected
     }
 
@@ -176,4 +176,9 @@ public class Cell
 
     public int row;
     public int col;
+
+    public string toString()
+    {
+        return "Row : " + row + ", Col : " + col;
+    }
 }

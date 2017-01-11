@@ -24,8 +24,8 @@ public class MarchingSquares : MonoBehaviour
     private List<Vector2> Holes;
     private List<EdgeCollider2D> edgeColliders;
 
-    public GameObject[] Prefabs;
-    private Dictionary<string,GameObject> cache;
+   // public GameObject[] Prefabs;
+   // private Dictionary<string,GameObject> cache;
 
 
     void Start()
@@ -37,14 +37,14 @@ public class MarchingSquares : MonoBehaviour
         yStep = Bounds.height / rows;
 
         edgeColliders = new List<EdgeCollider2D>();
-        cache = new Dictionary<string, GameObject>();
+       // cache = new Dictionary<string, GameObject>();
         Holes = new List<Vector2>();
 
 
-        for (int p = 0;p < Prefabs.Length; p++)
-        {
-            cache[Prefabs[p].name] = Prefabs[p];
-        }
+       // for (int p = 0;p < Prefabs.Length; p++)
+      //  {
+       //     cache[Prefabs[p].name] = Prefabs[p];
+        //}
 
 
         initMarchedArray();
@@ -282,34 +282,69 @@ public class MarchingSquares : MonoBehaviour
 
     
     
-    public void CreateCollider()
+    private void CreateCollider()
     {
-        new CreateCollider().Create(DotArray);
-        return;
-        for(int c = 0; c < edgeColliders.Count; c++)
+        foreach(EdgeCollider2D collider in this.edgeColliders)
         {
-            Destroy(edgeColliders[c]);
+            Destroy(collider);
         }
 
+        List <List<Cell>> result  = new CreateCollider().Create(DotArray);
+        foreach (List<Cell> eachResult in result)
+        {
+            createEachCollider(eachResult);
+        }
+    }
 
+    private void createEachCollider(List<Cell> colliders)
+    {
+        
+        EdgeCollider2D collider = this.gameObject.AddComponent<EdgeCollider2D>();
+        this.edgeColliders.Add(collider);
         List<Vector2> points = new List<Vector2>();
-        for (int y = 0; y < cols; y++)
+
+        for (int idx = 0; idx < colliders.Count; idx++ )
         {
-            for (int x = 0; x < rows; x++)
+            Cell eachCell = colliders[idx];
+
+            LineModel lineModel = getLineModel(eachCell.row, eachCell.col);
+
+            if(points.Count > 0)
             {
-                LineModel lineModel =  getLineModel(x, y);
-                EdgeCollider2D collider = this.gameObject.AddComponent<EdgeCollider2D>();
-                collider.hideFlags = HideFlags.HideInInspector;
+               Vector2 lastPoint = points[points.Count - 1];
+                
+               if(AlmostEqual(lastPoint.x , lineModel.from.x) && AlmostEqual(lastPoint.y , lineModel.from.y))
+               {
+                    points.Add(lineModel.from);
+                    points.Add(lineModel.to);
+                }
+                else if (AlmostEqual(lastPoint.x , lineModel.to.x) && AlmostEqual(lastPoint.y , lineModel.to.y))
+                {
 
-                this.edgeColliders.Add(collider);
+                    points.Add(lineModel.to);
+                    points.Add(lineModel.from);
+                }
+                else
+                {
+                    Debug.LogError("Unknown shape"  +  "LastPoint " + lastPoint + "  Line From"  + lineModel.from + "  Libne To" + lineModel.to) ;
+                }
 
-                Vector2[] colliderPoints = new Vector2[2];
-
-                colliderPoints[0] = lineModel.from;
-                colliderPoints[1] = lineModel.to;
-                collider.points = colliderPoints;
             }
+            else
+            {
+                points.Add(lineModel.from);
+                points.Add(lineModel.to);
+            }
+            
+            
+           
+
+            //Debug.Log(lineModel.from.ToString());
+          //  Debug.Log(lineModel.to.ToString());
+            
         }
+      
+        collider.points = points.ToArray();
     }
 
 
@@ -365,6 +400,12 @@ public class MarchingSquares : MonoBehaviour
     public static int Clamp(int value, int min, int max)
     {
         return (value < min) ? min : (value > max) ? max : value;
+    }
+
+    public static bool AlmostEqual(float x, float y)
+    {
+        double epsilon = Mathf.Max(Mathf.Abs(x), Mathf.Abs(y)) * 1E-2;
+        return Mathf.Abs(x - y) <= epsilon;
     }
 }
 

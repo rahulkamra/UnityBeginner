@@ -10,6 +10,7 @@ public class MarchingSquares : MonoBehaviour
 
     private bool[,] edgeDotArray;
     private bool[,] centerDotArray;
+    private GameObject[,] renderers;
 
     private float xStep;
     private float yStep;
@@ -24,9 +25,7 @@ public class MarchingSquares : MonoBehaviour
 
     private List<Vector2> Holes;
     private List<EdgeCollider2D> edgeColliders;
-
-   // public GameObject[] Prefabs;
-   // private Dictionary<string,GameObject> cache;
+    private Texture2D texture;
 
 
     void Start()
@@ -41,15 +40,17 @@ public class MarchingSquares : MonoBehaviour
        // cache = new Dictionary<string, GameObject>();
         Holes = new List<Vector2>();
 
+        texture = new Texture2D(rows, cols);
+
 
        // for (int p = 0;p < Prefabs.Length; p++)
-      //  {
+       //  {
        //     cache[Prefabs[p].name] = Prefabs[p];
-        //}
+       //}
 
 
         initMarchedArray();
-
+       
         GameObject lineDrawerObj = GameObject.Find("LineDrawer");
         this.lineDrawer =  lineDrawerObj.GetComponent<LineDrawer>();
 
@@ -68,12 +69,26 @@ public class MarchingSquares : MonoBehaviour
        
     }
 
+    private void initRenderers()
+    {
+        renderers = new GameObject[rows, cols];
+        
+        for (int col = 0; col < cols; col++)
+        {
+            for (int row = 0; row < rows; row++)
+            {
+                GameObject gameobject = new GameObject();
+                SpriteRenderer renderer = gameobject.gameObject.AddComponent<SpriteRenderer>();
+                renderers[row, col] = gameobject;
+            }
+        }
+    }
 
     private void initMarchedArray()
     {
         edgeDotArray = new bool[rows + 1, cols + 1];
         centerDotArray = new bool[rows , cols];
-
+        
         for (int col = 0; col <= cols; col++)
         {
             for (int row = 0; row <= rows; row++)
@@ -114,7 +129,8 @@ public class MarchingSquares : MonoBehaviour
             lineDrawer.ClearAll();
         RenderBlocks();
         RenderGrid();
-      //  CreateCollider();
+        CreateCollider();
+        RenderGraphic();
     }
 
     private void RefreshMarchingSquare(Vector2 hole)
@@ -189,6 +205,7 @@ public class MarchingSquares : MonoBehaviour
             centerDotArray[row, col] = centerBit;
         }
         
+        
     }
 
 
@@ -212,6 +229,13 @@ public class MarchingSquares : MonoBehaviour
 
         return value;
     }
+
+    public Color GetColor(int row, int col)
+    {
+
+        return Color.black;
+    }
+
 
     //X,y is the center of the block
     //Same pattern as https://en.wikipedia.org/wiki/Marching_squares
@@ -507,6 +531,11 @@ public class MarchingSquares : MonoBehaviour
     {
         double epsilon = Mathf.Max(Mathf.Abs(x), Mathf.Abs(y)) * 1E-2;
         return Mathf.Abs(x - y) <= epsilon;
+    }
+
+    private void RenderGraphic()
+    {
+
     }
 }
 

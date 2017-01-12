@@ -2,20 +2,23 @@
 {
 	Properties
 	{
-		_MainTex ("Texture", 2D) = "white" {}
+		_MainTex("Color (RGB) Alpha (A)", 2D) = "white"
 
 	}
 	SubShader
 	{
 		// No culling or depth
-		Cull Off ZWrite Off ZTest Always
-
+		
+		Tags{ "Queue" = "Transparent" "RenderType" = "Transparent" }
+		ZWrite Off
+		Blend SrcAlpha OneMinusSrcAlpha
 		Pass
 		{
 			CGPROGRAM
+		
 			#pragma vertex vert
 			#pragma fragment frag
-			#pragma target 4.0
+			
 
 			#include "UnityCG.cginc"
 
@@ -25,7 +28,7 @@
 			uniform float radius;
 			uniform int numBalls;
 			
-
+			
 			struct appdata
 			{
 				float4 vertex : POSITION;
@@ -72,32 +75,10 @@
 				}
 				else
 				{
-					return fixed4(0, 0, 0, 0);
+					return fixed4(1, 0, 0, 0.01);
 				}
 
-				
-
-				/*
-				float4 metallBall = metaBalls[0];
-				float xTex = metallBall.x / width;
-				float yTex = metallBall.y / height;
-
-				if ((xTex - i.uv.x)*(xTex - i.uv.x) + (yTex - i.uv.y)*(yTex - i.uv.y) >= radius * radius)
-				{
-					return fixed4(1, 0, 0, 1);
-				}; 
-
-				return fixed4(0, 0, 0, 0);
-				*/
 			
-
-				//fixed4 col = tex2D(_MainTex, i.uv);
-				// just invert the colors
-			//	col = 1 - col;
-				//return fixed4(1,1,1,1);
-				//return fixed4(temp,temp,temp,temp);
-				//return metaBalls[0];
-
 
 			}
 			ENDCG

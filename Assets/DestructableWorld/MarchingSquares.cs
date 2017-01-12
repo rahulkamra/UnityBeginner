@@ -27,6 +27,7 @@ public class MarchingSquares : MonoBehaviour
     private List<EdgeCollider2D> edgeColliders;
     private Texture2D texture;
 
+    private GameObject LineRendererParent;
 
     void Start()
     {
@@ -54,7 +55,7 @@ public class MarchingSquares : MonoBehaviour
         GameObject lineDrawerObj = GameObject.Find("LineDrawer");
         this.lineDrawer =  lineDrawerObj.GetComponent<LineDrawer>();
 
-        
+        LineRendererParent = GameObject.Find("LineRenderer");
         RefreshEverything();  
        // AddHole(-9f, -9f);
        // AddHole(-1f, -1f);
@@ -403,7 +404,11 @@ public class MarchingSquares : MonoBehaviour
     
     private void CreateCollider()
     {
-        foreach(EdgeCollider2D collider in this.edgeColliders)
+        if (LineRendererParent)
+            DestroyAllChildren(LineRendererParent);
+
+
+        foreach (EdgeCollider2D collider in this.edgeColliders)
         {
             Destroy(collider);
         }
@@ -417,10 +422,22 @@ public class MarchingSquares : MonoBehaviour
 
     private void createEachCollider(List<Cell> colliders)
     {
+        LineRenderer lineRenderer = null;
+
+        if (LineRendererParent)
+        {
+            GameObject gameobject = new GameObject() ;
+            lineRenderer =  gameobject.gameObject.AddComponent<LineRenderer>();
+            gameObject.transform.parent = LineRendererParent.transform;
+            
+        }
         
+
         EdgeCollider2D collider = this.gameObject.AddComponent<EdgeCollider2D>();
+
         this.edgeColliders.Add(collider);
         List<Vector2> points = new List<Vector2>();
+        List<Vector3> pointsV3 = new List<Vector3>();
 
         for (int idx = 0; idx < colliders.Count; idx++ )
         {
@@ -438,12 +455,18 @@ public class MarchingSquares : MonoBehaviour
                     {
                         points.Add(lineModel.from);
                         points.Add(lineModel.to);
+
+                        pointsV3.Add(lineModel.from);
+                        pointsV3.Add(lineModel.to);
                     }
                     else if (AlmostEqual(lastPoint.x, lineModel.to.x) && AlmostEqual(lastPoint.y, lineModel.to.y))
                     {
 
                         points.Add(lineModel.to);
                         points.Add(lineModel.from);
+
+                        pointsV3.Add(lineModel.to);
+                        pointsV3.Add(lineModel.from);
                     }
                     else
                     {
@@ -455,11 +478,20 @@ public class MarchingSquares : MonoBehaviour
                 {
                     points.Add(lineModel.from);
                     points.Add(lineModel.to);
+
+                    pointsV3.Add(lineModel.from);
+                    pointsV3.Add(lineModel.to);
                 }
             } 
         }
       
         collider.points = points.ToArray();
+        if(lineRenderer != null)
+        {
+            lineRenderer.SetVertexCount(pointsV3.Count);
+            lineRenderer.SetPositions(pointsV3.ToArray());
+        }
+            
     }
 
 
@@ -537,6 +569,17 @@ public class MarchingSquares : MonoBehaviour
     {
 
     }
+
+    private void DestroyAllChildren(GameObject gameObject)
+    {
+        List<GameObject> children = new List<GameObject>();
+        foreach (Transform child in transform)
+            children.Add(child.gameObject);
+
+        children.ForEach(child => Destroy(child));
+    }
+    
+      
 }
 
 

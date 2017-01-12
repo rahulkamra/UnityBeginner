@@ -8,8 +8,9 @@ public class MarchingSquares : MonoBehaviour
     public Rect Bounds;
     public Vector2 Segmentation;
 
-    private bool[,] DotArray;
-    
+    private bool[,] edgeDotArray;
+    private bool[,] centerDotArray;
+
     private float xStep;
     private float yStep;
 
@@ -70,7 +71,8 @@ public class MarchingSquares : MonoBehaviour
 
     private void initMarchedArray()
     {
-        DotArray = new bool[rows + 1, cols + 1];
+        edgeDotArray = new bool[rows + 1, cols + 1];
+        centerDotArray = new bool[rows , cols];
 
         for (int col = 0; col <= cols; col++)
         {
@@ -78,22 +80,22 @@ public class MarchingSquares : MonoBehaviour
             {
                 if(col == 0)
                 {
-                    DotArray[row, col] = true;
+                    edgeDotArray[row, col] = true;
                 }
 
                 if (col == cols)
                 {
-                    DotArray[row, col] = true;
+                    edgeDotArray[row, col] = true;
                 }
 
                 if (row == rows)
                 {
-                    DotArray[row, col] = true;
+                    edgeDotArray[row, col] = true;
                 }
 
                 if (row == 0)
                 {
-                    DotArray[row, col] = true;
+                    edgeDotArray[row, col] = true;
                 }
             }
         }
@@ -112,7 +114,7 @@ public class MarchingSquares : MonoBehaviour
             lineDrawer.ClearAll();
         RenderBlocks();
         RenderGrid();
-        CreateCollider();
+      //  CreateCollider();
     }
 
     private void RefreshMarchingSquare(Vector2 hole)
@@ -144,51 +146,58 @@ public class MarchingSquares : MonoBehaviour
 
     private void processCellCircleHole(int row, int col , Vector2 origin , float radius)
     {
-        bool tlBit = DotArray[row + 1, col];
-        bool trBit = DotArray[row + 1, col + 1];
-        bool brBit = DotArray[row, col + 1];
-        bool blBit = DotArray[row, col];
+        bool tlBit = edgeDotArray[row + 1, col];
+        bool trBit = edgeDotArray[row + 1, col + 1];
+        bool brBit = edgeDotArray[row, col + 1];
+        bool blBit = edgeDotArray[row, col];
 
-        
+        bool centerBit = centerDotArray[row, col];
+
         Vector2 localCoordinates = GetLocalCoordinates(row, col);
 
         if(!tlBit) 
         {
             Vector2 tl = new Vector2(localCoordinates.x - xStep * 0.5f, localCoordinates.y + yStep * 0.5f);
             tlBit = Vector2.Distance(tl, origin) <= radius;
-            DotArray[row + 1, col] = tlBit;
+            edgeDotArray[row + 1, col] = tlBit;
         }
 
         if (!trBit)
         {
             Vector2 tr = new Vector2(localCoordinates.x + xStep * 0.5f, localCoordinates.y + yStep * 0.5f);
             trBit = Vector2.Distance(tr, origin) <= radius;
-            DotArray[row + 1, col + 1] = trBit;
+            edgeDotArray[row + 1, col + 1] = trBit;
         }
 
         if (!brBit)
         {
             Vector2 br = new Vector2(localCoordinates.x + xStep * 0.5f, localCoordinates.y - yStep * 0.5f);
             brBit = Vector2.Distance(br, origin) <= radius;
-            DotArray[row, col + 1] = brBit;
+            edgeDotArray[row, col + 1] = brBit;
         }
 
         if (!blBit)
         {
             Vector2 bl = new Vector2(localCoordinates.x - xStep * 0.5f, localCoordinates.y - yStep * 0.5f);
             blBit = Vector2.Distance(bl, origin) <= radius;
-            DotArray[row, col] = blBit;
+            edgeDotArray[row, col] = blBit;
+        }
+
+        if(!centerBit)
+        {
+            centerBit = Vector2.Distance(localCoordinates, origin) <= radius;
+            centerDotArray[row, col] = centerBit;
         }
         
     }
 
 
-    private uint getValue(int row , int col)
+    public uint GetValue(int row , int col)
     {
-        bool tlBit = DotArray[row + 1, col];
-        bool trBit = DotArray[row + 1, col + 1];
-        bool brBit = DotArray[row, col + 1];
-        bool blBit = DotArray[row, col];
+        bool tlBit = edgeDotArray[row + 1, col];
+        bool trBit = edgeDotArray[row + 1, col + 1];
+        bool brBit = edgeDotArray[row, col + 1];
+        bool blBit = edgeDotArray[row, col];
 
         uint value = 0;
 
@@ -206,15 +215,17 @@ public class MarchingSquares : MonoBehaviour
 
     //X,y is the center of the block
     //Same pattern as https://en.wikipedia.org/wiki/Marching_squares
-    public LineModel getLineModel(int row ,int col)
+    public List<LineModel> getLineModel(int row ,int col)
     {
         Vector2 localCooridnates =  GetLocalCoordinates(row, col);
-        uint value = getValue(row , col);
+        uint value = GetValue(row , col);
         float x = localCooridnates.x;
         float y = localCooridnates.y;
+        List<LineModel> result = new List<LineModel>();
 
         LineModel edge = new LineModel();
-       
+        result.Add(edge);
+
         switch (value)
         {
             case 1110:
@@ -271,18 +282,100 @@ public class MarchingSquares : MonoBehaviour
                 edge.to.x = x + xStep / 2f;
                 edge.to.y = y;
                 break;
-                
+
+            case 1010:
+            case 0101:
+                result = getTwoSegmentSaddle(value, row, col);
+                break;
+
+            case 0000:
+            case 1111:
+                break;
+
             default:
-                //Debug.LogError("Unhandled case");
+                Debug.LogError("Unhandled case " + value);
                 break;
 
         }
         
-        return edge;
+        return result;
     }
 
 
-    
+    private List<LineModel> getTwoSegmentSaddle(uint value, int row, int col)
+    {
+        List<LineModel> result = new List<LineModel>();
+        Vector2 localCooridnates = GetLocalCoordinates(row, col);
+
+        bool topLeftFlowing = false;
+        bool topRightFlowing = false;
+        bool centerBit = centerDotArray[row, col];
+        float x = localCooridnates.x;
+        float y = localCooridnates.y;
+
+        if (value == 1010)
+        {
+            if(centerBit)
+            {
+                topLeftFlowing = true;
+            }
+            else
+            {
+                topRightFlowing = true;
+            }
+        }else if(value == 0101)
+        {
+            if(centerBit)
+            {
+                topLeftFlowing = true;
+            }
+            else
+            {
+                topRightFlowing = true;
+            }
+        }
+        LineModel model1 = new LineModel();
+        LineModel model2 = new LineModel();
+        result.Add(model1);
+        result.Add(model2);
+
+        if (topRightFlowing)
+        {
+            model1.from.x = x - xStep * 0.5f;
+            model1.from.y = y;
+
+            model1.to.x = x;
+            model1.to.y = y + yStep * 0.5f;
+
+            model2.from.x = x;
+            model2.from.y = y - yStep * 0.5f;
+
+            model2.to.x = x + xStep * 0.5f;
+            model2.to.y = y;
+
+        }
+        else if(topLeftFlowing)
+        {
+            model1.from.x = x;
+            model1.from.y = y + yStep * 0.5f;
+
+            model1.to.x = x + xStep * 0.5f;
+            model1.to.y = y;
+
+            model2.from.x = x - xStep / 2f;
+            model2.from.y = y;
+
+            model2.to.x = x;
+            model2.to.y = y - yStep / 2f;
+        }
+        else
+        {
+            Debug.LogError("Unhandled case in getTwoSegmentSaddle");
+        }
+        
+            
+        return result;
+    }
     
     private void CreateCollider()
     {
@@ -291,7 +384,7 @@ public class MarchingSquares : MonoBehaviour
             Destroy(collider);
         }
 
-        List <List<Cell>> result  = new CreateCollider().Create(DotArray);
+        List <List<Cell>> result  = new CreateCollider().Create(edgeDotArray,this);
         foreach (List<Cell> eachResult in result)
         {
             createEachCollider(eachResult);
@@ -309,41 +402,37 @@ public class MarchingSquares : MonoBehaviour
         {
             Cell eachCell = colliders[idx];
 
-            LineModel lineModel = getLineModel(eachCell.row, eachCell.col);
-
-            if(points.Count > 0)
+            List<LineModel> models = getLineModel(eachCell.row, eachCell.col);
+            foreach(LineModel lineModel in models)
             {
-               Vector2 lastPoint = points[points.Count - 1];
                 
-               if(AlmostEqual(lastPoint.x , lineModel.from.x) && AlmostEqual(lastPoint.y , lineModel.from.y))
-               {
-                    points.Add(lineModel.from);
-                    points.Add(lineModel.to);
-                }
-                else if (AlmostEqual(lastPoint.x , lineModel.to.x) && AlmostEqual(lastPoint.y , lineModel.to.y))
+                if (points.Count > 0)
                 {
+                    Vector2 lastPoint = points[points.Count - 1];
 
-                    points.Add(lineModel.to);
-                    points.Add(lineModel.from);
+                    if (AlmostEqual(lastPoint.x, lineModel.from.x) && AlmostEqual(lastPoint.y, lineModel.from.y))
+                    {
+                        points.Add(lineModel.from);
+                        points.Add(lineModel.to);
+                    }
+                    else if (AlmostEqual(lastPoint.x, lineModel.to.x) && AlmostEqual(lastPoint.y, lineModel.to.y))
+                    {
+
+                        points.Add(lineModel.to);
+                        points.Add(lineModel.from);
+                    }
+                    else
+                    {
+                        Debug.LogError("Unknown shape" + "LastPoint " + lastPoint + "  Line From" + lineModel.from + "  Libne To" + lineModel.to);
+                    }
+
                 }
                 else
                 {
-                    Debug.LogError("Unknown shape"  +  "LastPoint " + lastPoint + "  Line From"  + lineModel.from + "  Libne To" + lineModel.to) ;
+                    points.Add(lineModel.from);
+                    points.Add(lineModel.to);
                 }
-
-            }
-            else
-            {
-                points.Add(lineModel.from);
-                points.Add(lineModel.to);
-            }
-            
-            
-           
-
-            //Debug.Log(lineModel.from.ToString());
-          //  Debug.Log(lineModel.to.ToString());
-            
+            } 
         }
       
         collider.points = points.ToArray();
@@ -375,11 +464,15 @@ public class MarchingSquares : MonoBehaviour
 
     private void RenderBlock(int row , int col)
     {
-        LineModel lineModel =  getLineModel(row, col);
-        lineModel.color = Color.red;
-        if(lineDrawer)
-            lineDrawer.AddLineToDraw(lineModel);
+        List<LineModel> models = getLineModel(row, col);
+        foreach (LineModel lineModel in models)
+        {
+            lineModel.color = Color.red;
+            if (lineDrawer)
+                lineDrawer.AddLineToDraw(lineModel);
+        }
     }
+
 
    
     private void RenderGrid()

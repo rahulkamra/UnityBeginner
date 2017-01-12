@@ -15,10 +15,12 @@ public class CreateCollider
     private List<Cell> currentList;
 
     private int numItemsTraversed = 0;
+    private MarchingSquares march;
 
-    public List<List<Cell>> Create(bool[,] dotsArray)
+    public List<List<Cell>> Create(bool[,] dotsArray , MarchingSquares march)
     {
         result = new List<List<Cell>>();
+        this.march = march;
 
         this.dotsArray = dotsArray;
         this.rows = dotsArray.GetLength(0) - 1; // the blocks are one less than points
@@ -33,29 +35,29 @@ public class CreateCollider
         allList = new List<Cell>();
         currentList = new List<Cell>();
 
-        traversed = new bool[rows,cols];
+        traversed = new bool[rows, cols];
         for (int col = 0; col < cols; col++)
         {
             for (int row = 0; row < rows; row++)
             {
-                allList.Add(new Cell(row ,col));
+                allList.Add(new Cell(row, col));
             }
         }
         Cell cell = allList[0];
         allList.RemoveAt(0);
         fillCells(cell);
-        
+
     }
     private void fillCells(Cell targetCell)
     {
-        if(numItemsTraversed >= rows * cols)
+        if (numItemsTraversed >= rows * cols)
         {
             //we are done here
             return;
         }
 
-        
-        if(traversed[targetCell.row, targetCell.col])
+
+        if (traversed[targetCell.row, targetCell.col])
         {
             Cell cell = allList[0];
             allList.RemoveAt(0);
@@ -69,7 +71,7 @@ public class CreateCollider
         {
             currentList.Add(targetCell);
             Cell neightbourCell = getValidNeighbour(targetCell);
-            if(neightbourCell != null)
+            if (neightbourCell != null)
             {
                 fillCells(neightbourCell);
             }
@@ -77,7 +79,7 @@ public class CreateCollider
             {
                 finishCurrent();
                 Cell cell = allList[0];
-                
+
                 allList.RemoveAt(0);
                 fillCells(cell);
             }
@@ -90,51 +92,7 @@ public class CreateCollider
             fillCells(cell);
         }
         // we need to find the first free item.
-        
-    }
 
-    private Cell getValidNeighbour(Cell cell)
-    {
-        Cell left;
-        if(cell.col !=0)
-        {
-            left = new Cell(cell.row, cell.col - 1);
-            if(isCountourCell(left) && !traversed[left.row, left.col])
-            {
-                return left;
-            }
-        }
-
-        Cell right;
-        if(cell.col < cols -1)
-        {
-            right = new Cell(cell.row, cell.col + 1);
-            if (isCountourCell(right) && !traversed[right.row, right.col])
-            {
-                return right;
-            }
-        }
-
-        Cell bot;
-        if (cell.row != 0)
-        {
-            bot = new Cell(cell.row - 1, cell.col);
-            if (isCountourCell(bot) && !traversed[bot.row, bot.col])
-            {
-                return bot;
-            }
-        }
-
-        Cell top;
-        if (cell.row < rows - 1)
-        {
-            top = new Cell(cell.row + 1, cell.col);
-            if (isCountourCell(top) && !traversed[top.row, top.col])
-            {
-                return top;
-            }
-        }
-        return null;
     }
     
     private bool isCountourCell(Cell cell)
@@ -147,7 +105,7 @@ public class CreateCollider
         bool brBit = dotsArray[row, col + 1];
         bool blBit = dotsArray[row, col];
 
-        if(tlBit && trBit && brBit && blBit)//if all true .. means no countour
+        if (tlBit && trBit && brBit && blBit)//if all true .. means no countour
         {
             return false;
         }
@@ -161,15 +119,151 @@ public class CreateCollider
     }
     private void finishCurrent()
     {
-        if(currentList != null && currentList.Count > 0)
+        if (currentList != null && currentList.Count > 0)
         {
             result.Add(currentList);
             currentList = new List<Cell>();
         }
     }
-   
-    
+
+
+    public Cell getValidNeighbour(Cell cell)
+    {
+        uint value = march.GetValue(cell.row, cell.col);
+     
+        Cell left = getValidLeftCell(cell);
+        Cell right = getValidRightCell(cell);
+        Cell bot = getValidBotCell(cell);
+        Cell top = getValidTopCell(cell);
+
+        switch (value)
+        {
+            case 1110:
+            case 0001:
+                //left and bot
+                if (left != null)
+                    return left;
+                if (bot != null)
+                    return bot;
+
+                break;
+
+
+            case 1101:
+            case 0010:
+                //right and bot
+                //left and bot
+                if (right != null)
+                    return right;
+                if (bot != null)
+                    return bot;
+                break;
+
+            case 1011:
+            case 0100:
+                //top and right
+                if (right != null)
+                    return right;
+                if (top != null)
+                    return top;
+                break;
+
+            case 0111:
+            case 1000:
+                //top and left
+
+                if (left != null)
+                    return left;
+                if (top != null)
+                    return top;
+
+                break;
+
+            case 1001:
+            case 0110:
+                // top and bot
+                if (bot != null)
+                    return bot;
+                if (top != null)
+                    return top;
+
+                break;
+
+            case 1100:
+            case 0011:
+                //left and right
+                if (left != null)
+                    return left;
+                if (right != null)
+                    return right;
+
+                break;
+        }
+        return null;
+    }
+
+    private Cell getValidLeftCell(Cell cell)
+    {
+        Cell left;
+        if (cell.col != 0)
+        {
+            left = new Cell(cell.row, cell.col - 1);
+            if (isCountourCell(left) && !traversed[left.row, left.col])
+            {
+                return left;
+            }
+        }
+        return null;
+    }
+
+
+    private Cell getValidRightCell(Cell cell)
+    {
+        Cell right;
+        if (cell.col < cols - 1)
+        {
+            right = new Cell(cell.row, cell.col + 1);
+            if (isCountourCell(right) && !traversed[right.row, right.col])
+            {
+                return right;
+            }
+        }
+
+        return null;
+    }
+
+    private Cell getValidTopCell(Cell cell)
+    {
+
+        Cell top;
+        if (cell.row < rows - 1)
+        {
+            top = new Cell(cell.row + 1, cell.col);
+            if (isCountourCell(top) && !traversed[top.row, top.col])
+            {
+                return top;
+            }
+        }
+        return null;
+    }
+
+    private Cell getValidBotCell(Cell cell)
+    {
+        Cell bot;
+        if (cell.row != 0)
+        {
+            bot = new Cell(cell.row - 1, cell.col);
+            if (isCountourCell(bot) && !traversed[bot.row, bot.col])
+            {
+                return bot;
+            }
+        }
+        return null;
+    }
+
+
 }
+
 
 public class Cell
 {
